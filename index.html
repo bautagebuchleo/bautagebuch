@@ -213,6 +213,9 @@ details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bo
 .contact .firm { font-weight: 600; overflow-wrap: anywhere; }
 .contact .sub { font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
 .contact a { overflow-wrap: anywhere; }
+.gw { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 4px; padding: 4px 4px 4px 10px; font-size: 14px; background: var(--paper); }
+.gw button { border: 0; background: transparent; color: var(--ink-3); width: 28px; height: 28px; border-radius: 4px; font-size: 16px; line-height: 1; }
+.gw button:hover { background: var(--sunk); color: var(--danger); }
 .form { display: flex; flex-direction: column; gap: 8px; background: var(--paper); border-radius: var(--r); padding: 12px; border: 1px solid var(--line); }
 .form input { background: var(--panel); }
 
@@ -296,7 +299,7 @@ details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bo
           <button class="btn small" type="button" id="neueBaustelleBtn">Neu</button>
         </div>
         <div class="row" id="neueBaustelleRow" hidden>
-          <input type="text" id="neueBaustelleInput" class="grow" placeholder="Wohnanlage Müllerstraße 12" autocomplete="off">
+          <input type="text" id="neueBaustelleInput" class="grow" placeholder="Name der Baustelle" autocomplete="off">
           <button class="btn small" type="button" id="neueBaustelleOk">Anlegen</button>
         </div>
         <p class="err-text" id="baustelleErr" hidden></p>
@@ -323,14 +326,14 @@ details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bo
           <button class="btn small" type="button" id="kiBtn" hidden>Mit KI strukturieren</button>
           <button class="btn quiet small" type="button" id="vortagBtn">Vom Vortag</button>
         </div>
-        <textarea id="textInput" placeholder="Trockenbau 2. OG abgeschlossen, Firma Stein mit 4 Mann vor Ort. Estrich Achse C zeigt Riss, ca. 1,2 m."></textarea>
+        <textarea id="textInput" placeholder="Beschreibung"></textarea>
         <div class="raw" id="rawBox" hidden>
           <div class="row"><span class="label grow">Originaltext (Diktat)</span><button class="btn quiet small" type="button" id="rawRestore">Wiederherstellen</button></div>
           <p id="rawText"></p>
         </div>
         <div class="two wrap">
-          <input type="text" id="gewerkInput" placeholder="Gewerk, z. B. Trockenbau" aria-label="Gewerk">
-          <input type="text" id="ortInput" placeholder="Ort im Bau, z. B. 2. OG, Achse C/3" aria-label="Ort im Bau">
+          <select id="gewerkInput" aria-label="Gewerk"></select>
+          <input type="text" id="ortInput" placeholder="Ort im Bau" aria-label="Ort im Bau">
         </div>
         <p class="hint" id="dictHint">Zum Diktieren auf der iPhone-Tastatur das Mikrofon antippen.</p>
         <p class="err-text" id="kiErr" hidden></p>
@@ -355,8 +358,8 @@ details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bo
       <div class="card">
         <div class="row"><span class="label grow">Wetter</span><span class="hint" id="wetterState"></span></div>
         <div class="weather">
-          <div class="unit"><input type="number" id="tempInput" inputmode="decimal" placeholder="8" aria-label="Temperatur in Grad Celsius"><span>°C</span></div>
-          <input type="text" id="wetterInput" list="wetterListe" placeholder="Bewölkt, trocken" aria-label="Wetterlage">
+          <div class="unit"><input type="number" id="tempInput" inputmode="decimal" placeholder="Temp." aria-label="Temperatur in Grad Celsius"><span>°C</span></div>
+          <input type="text" id="wetterInput" list="wetterListe" placeholder="Wetterlage" aria-label="Wetterlage">
           <datalist id="wetterListe"><option value="Klar"><option value="Teilweise bewölkt"><option value="Bedeckt"><option value="Nebel"><option value="Nieselregen"><option value="Regen"><option value="Starkregen"><option value="Schneefall"><option value="Frost"><option value="Sturm"><option value="Gewitter"></datalist>
         </div>
       </div>
@@ -367,11 +370,10 @@ details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bo
 
     <!-- Einträge -->
     <section class="view" id="v-eintraege" hidden>
-      <div class="banner" data-demo-banner hidden><span>Die Baustelle „Beispiel“ enthält Beispieldaten zum Ausprobieren.</span><button class="btn small" type="button" data-remove-demo>Beispieldaten entfernen</button></div>
       <div class="filters">
         <select id="fBaustelle" aria-label="Baustelle filtern"></select>
         <select id="fKat" aria-label="Kategorie filtern"></select>
-        <input type="search" id="fText" class="full" placeholder="Text, Firma oder Nummer suchen, z. B. Estrich oder BT-0012" aria-label="Suchen">
+        <input type="search" id="fText" class="full" placeholder="Suchen" aria-label="Suchen">
       </div>
       <button class="btn" type="button" id="planViewBtn" hidden>Pläne mit Pins anzeigen</button>
       <div id="entryList" class="stack"></div>
@@ -379,7 +381,6 @@ details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bo
 
     <!-- Kalender -->
     <section class="view" id="v-kalender" hidden>
-      <div class="banner" data-demo-banner hidden><span>Die Baustelle „Beispiel“ enthält Beispieldaten zum Ausprobieren.</span><button class="btn small" type="button" data-remove-demo>Beispieldaten entfernen</button></div>
       <select id="calBaustelle" aria-label="Baustelle für Kalender"></select>
       <div class="card">
         <div class="cal-head">
@@ -405,7 +406,7 @@ details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bo
         <h2>KI-Strukturierung (Gemini)</h2>
         <p class="hint">Formt dein Diktat in einen sachlichen Eintrag um und erkennt Kategorie, Gewerk, Ort und Personal. Der Originaltext bleibt immer gespeichert.</p>
         <label class="label" for="kiKey">Gemini API-Schlüssel</label>
-        <input type="password" id="kiKey" placeholder="AIza…" autocomplete="off" spellcheck="false">
+        <input type="password" id="kiKey" placeholder="API-Schlüssel" autocomplete="off" spellcheck="false">
         <label class="label" for="kiModel">Modell</label>
         <input type="text" id="kiModel" placeholder="gemini-2.5-flash" autocomplete="off" spellcheck="false">
         <div class="row"><button class="btn small" type="button" id="kiSave">Speichern</button><button class="btn quiet small danger" type="button" id="kiClear">Schlüssel löschen</button></div>
@@ -424,7 +425,6 @@ details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bo
       <div class="card">
         <h2>Daten</h2>
         <dl class="kv" id="dataInfo"></dl>
-        <div class="row"><button class="btn small" type="button" data-remove-demo id="removeDemoBtn" hidden>Beispieldaten entfernen</button><button class="btn small" type="button" id="loadDemoBtn" hidden>Beispiel-Baustelle laden</button></div>
       </div>
     </section>
   </main>
@@ -447,8 +447,8 @@ details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bo
   <div class="sig-pad">
     <p class="hint" id="sigFor"></p>
     <div class="two wrap">
-      <input type="text" id="sigName" placeholder="Name, z. B. Leo Bauer" aria-label="Name">
-      <input type="text" id="sigRole" list="rollenListe" placeholder="Funktion, z. B. Bauleitung" aria-label="Funktion">
+      <input type="text" id="sigName" placeholder="Name" aria-label="Name">
+      <input type="text" id="sigRole" list="rollenListe" placeholder="Funktion" aria-label="Funktion">
       <datalist id="rollenListe"><option value="Bauleitung"><option value="Auftragnehmer"><option value="Bauherr"><option value="Polier"><option value="Fachplanung"></datalist>
     </div>
     <canvas id="sigCanvas" aria-label="Unterschriftsfeld"></canvas>
@@ -490,6 +490,7 @@ const WTAG = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freita
 const MONATE = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
 const GESCHOSSE = ["3.UG", "2.UG", "UG", "KG", "EG", "1.OG", "2.OG", "3.OG", "4.OG", "5.OG", "6.OG", "7.OG", "8.OG", "DG", "Dach", "Lageplan", "Schnitt", "Ansicht"];
 const DEMO = "Beispiel: Kita Lindenhof";
+const GEWERKE_STANDARD = ["Abbruch", "Aufzug", "Außenanlagen", "Beton- und Stahlbetonarbeiten", "Bodenbelag", "Dachdecker", "Elektro", "Erdarbeiten", "Estrich", "Fassade", "Fenster", "Fliesen", "Gerüstbau", "Heizung", "Klempner", "Lüftung", "Maler", "Mauerarbeiten", "Metallbau", "Rohbau", "Sanitär", "Tischler", "Trockenbau", "Zimmerer"];
 const SEED_VERSION = 2;
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -565,8 +566,31 @@ const S = {
   rep: { roh: false, personal: true, sig: false },
   editId: null, confirmId: null, showRoh: new Set(),
   bDetail: null, bEdit: null, bConfirm: null,
-  sync: { state: "idle", msg: "" }
+  sync: { state: "idle", msg: "" },
+  gewerke: { liste: [], geaendert: null }
 };
+const sortDe = (a) => [...a].sort((x, y) => x.localeCompare(y, "de"));
+function gewerkOptions(sel) {
+  const l = S.gewerke.liste, extra = sel && !l.some((g) => g.toLowerCase() === String(sel).toLowerCase());
+  return `<option value="">Gewerk wählen</option>${l.map((g) => `<option value="${esc(g)}"${g === sel ? " selected" : ""}>${esc(g)}</option>`).join("")}${extra ? `<option value="${esc(sel)}" selected>${esc(sel)} (nicht in Liste)</option>` : ""}`;
+}
+function matchGewerk(v) { if (!v) return ""; const f = S.gewerke.liste.find((g) => g.toLowerCase() === String(v).trim().toLowerCase()); return f || String(v).trim(); }
+function setGewerk(el, v) { el.innerHTML = gewerkOptions(matchGewerk(v)); }
+async function saveGewerke() {
+  S.gewerke.liste = sortDe(S.gewerke.liste); S.gewerke.geaendert = new Date().toISOString();
+  await kvSet("gewerke", S.gewerke); await kvSet("dirty:_gewerke", true); sync(false);
+}
+async function syncGewerke(uploadIfLocalNewer) {
+  let remote = null; try { const bl = await DBX.download("/_einstellungen.json"); if (bl) remote = JSON.parse(await bl.text()); } catch (e) { remote = null; }
+  const r = remote && remote.gewerke;
+  if (r && r.liste && (!S.gewerke.geaendert || (r.geaendert && r.geaendert > S.gewerke.geaendert))) {
+    S.gewerke = { liste: sortDe(r.liste), geaendert: r.geaendert }; await kvSet("gewerke", S.gewerke); await kvSet("dirty:_gewerke", false); return;
+  }
+  if (uploadIfLocalNewer) {
+    await DBX.upload("/_einstellungen.json", new Blob([JSON.stringify({ ...(remote || {}), gewerke: S.gewerke }, null, 2)], { type: "application/json" }));
+    await kvSet("dirty:_gewerke", false);
+  }
+}
 const freshDraft = () => ({ kat: "fortschritt", fotos: [], textRoh: null, ki: null, temp: "", wetter: "", wetterAuto: null, ort: null, personal: [], pin: null });
 S.draft = freshDraft();
 const urlCache = new Map();
@@ -733,6 +757,7 @@ async function sync(manual) {
   setSync("running");
   try {
     await processPendingOps();
+    if (await kvGet("dirty:_gewerke", false)) await syncGewerke(true);
     const pending = S.entries.filter((e) => !e.synced && !e.beispiel);
     const groups = new Set(pending.map((e) => e.baustelle));
     for (const b of S.baustellen) if (b !== DEMO && await kvGet("dirty:" + b, false)) groups.add(b);
@@ -835,6 +860,7 @@ async function setArchived(b, on) {
 async function importRemote(manual) {
   if (!DBX.connected || !navigator.onLine) return;
   try {
+    await syncGewerke(false);
     const res = await DBX.rpc("files/list_folder", { path: "" }); let neu = 0, weg = 0;
     let tomb = []; try { const bl = await DBX.download("/_geloescht.json"); if (bl) tomb = JSON.parse(await bl.text()); } catch (e) { tomb = []; }
     const untomb = await kvGet("ops:untomb", []), dead = new Set();
@@ -908,7 +934,7 @@ async function kiStructure() {
   const firmen = meta(S.aktuell).kontakte.map((k) => k.firma).filter(Boolean);
   const prompt = `Du bist Assistent einer Bauleitung in Deutschland. Forme das Diktat in einen sachlichen, knappen Bautagebuch-Eintrag um.
 Regeln: Rechtschreibung und Baufachbegriffe korrigieren. Keine Fakten erfinden und keine weglassen. Maße und Mengen als Ziffern mit Einheit. Vollständige Sätze im Präteritum oder Präsens, ohne Füllwörter.
-Antworte nur mit JSON: {"text": string, "kategorie": eine von [${KATS.map((k) => '"' + k[0] + '"').join(", ")}], "gewerk": string oder null, "ort": string oder null (Lage im Gebäude, z. B. "2. OG, Achse C/3"), "personal": [{"firma": string, "anzahl": Zahl}]}
+Antworte nur mit JSON: {"text": string, "kategorie": eine von [${KATS.map((k) => '"' + k[0] + '"').join(", ")}], "gewerk": eine von [${S.gewerke.liste.map((g) => '"' + g + '"').join(", ")}] oder null, "ort": string oder null (Lage im Gebäude, Geschoss, Raum oder Achse), "personal": [{"firma": string, "anzahl": Zahl}]}
 "personal" nur füllen, wenn eine Firma mit Personenzahl genannt wird.${firmen.length ? `\nBekannte Firmen dieser Baustelle (genaue Schreibweise verwenden): ${firmen.join("; ")}` : ""}
 Diktat: """${roh}"""`;
   const btn = $("#kiBtn"); btn.disabled = true; btn.textContent = "KI arbeitet …";
@@ -928,7 +954,7 @@ Diktat: """${roh}"""`;
     S.draft.textRoh = roh; S.draft.ki = { modell: model, zeit: new Date().toISOString() };
     ta.value = o.text;
     if (o.kategorie && KAT_LABEL[o.kategorie]) S.draft.kat = o.kategorie;
-    if (o.gewerk && !$("#gewerkInput").value) $("#gewerkInput").value = o.gewerk;
+    if (o.gewerk && !$("#gewerkInput").value) setGewerk($("#gewerkInput"), o.gewerk);
     if (o.ort && !$("#ortInput").value) $("#ortInput").value = o.ort;
     if (S.opts.personal && Array.isArray(o.personal) && o.personal.length) {
       readPersonalRows();
@@ -967,7 +993,7 @@ async function saveEntry() {
   S.entries.push(e); await DB.put("entries", e);
   const keep = { wetterAuto: S.draft.wetterAuto, ort: S.draft.ort, kat: S.draft.kat };
   S.draft = Object.assign(freshDraft(), keep);
-  $("#textInput").value = ""; $("#gewerkInput").value = ""; $("#ortInput").value = ""; await kvSet("draftText", "");
+  $("#textInput").value = ""; setGewerk($("#gewerkInput"), ""); $("#ortInput").value = ""; await kvSet("draftText", "");
   toast(`${nrText(e.nr)} gespeichert.`); render(); sync(false);
 }
 async function addPhotos(files) {
@@ -983,7 +1009,7 @@ function vortag() {
   const prev = mine.find((e) => e.datum < today) || mine[0];
   if (!prev) { toast("Für diese Baustelle gibt es noch keinen früheren Eintrag."); return; }
   $("#textInput").value = prev.text; S.draft.kat = prev.kategorie; S.draft.textRoh = null; S.draft.ki = null;
-  $("#gewerkInput").value = prev.gewerk || ""; $("#ortInput").value = prev.ortImBau || "";
+  setGewerk($("#gewerkInput"), prev.gewerk || ""); $("#ortInput").value = prev.ortImBau || "";
   if (prev.personal && prev.personal.length) { S.draft.personal = prev.personal.map((p) => ({ ...p })); $("#personalDetails").open = true; }
   renderErfassen(); toast(`Angaben von ${nrText(prev.nr)} (${deDate(prev.datum)}) übernommen. Bitte anpassen.`);
 }
@@ -1154,12 +1180,12 @@ function editFormHtml(e) {
   return `<div class="stack"><span class="label">Kategorie</span><div class="chips">${KATS.map(([id, l]) => `<button type="button" class="chip" data-edkat="${id}" aria-pressed="${ED.kat === id}">${l}</button>`).join("")}</div></div>
     <div class="stack"><label class="label" for="edText">Beschreibung</label><textarea id="edText" style="min-height:160px">${esc(ED.text)}</textarea>
       ${e.textRoh ? `<p class="hint">Der Originaltext (Diktat) bleibt unverändert gespeichert.</p>` : ""}</div>
-    <div class="two wrap"><div class="stack"><label class="label" for="edGewerk">Gewerk</label><input type="text" id="edGewerk" value="${esc(ED.gewerk)}" placeholder="Trockenbau"></div>
-      <div class="stack"><label class="label" for="edOrt">Ort im Bau</label><input type="text" id="edOrt" value="${esc(ED.ortImBau)}" placeholder="2. OG, Achse C/3"></div></div>
-    <div class="stack"><span class="label">Wetter</span><div class="weather"><div class="unit"><input type="number" id="edTemp" inputmode="decimal" value="${esc(ED.wTemp)}" placeholder="8" aria-label="Temperatur in Grad Celsius"><span>°C</span></div>
-      <input type="text" id="edWetter" list="wetterListe" value="${esc(ED.wText)}" placeholder="Bewölkt, trocken" aria-label="Wetterlage"></div>
+    <div class="two wrap"><div class="stack"><label class="label" for="edGewerk">Gewerk</label><select id="edGewerk">${gewerkOptions(matchGewerk(ED.gewerk))}</select></div>
+      <div class="stack"><label class="label" for="edOrt">Ort im Bau</label><input type="text" id="edOrt" value="${esc(ED.ortImBau)}" placeholder="Ort im Bau"></div></div>
+    <div class="stack"><span class="label">Wetter</span><div class="weather"><div class="unit"><input type="number" id="edTemp" inputmode="decimal" value="${esc(ED.wTemp)}" placeholder="Temp." aria-label="Temperatur in Grad Celsius"><span>°C</span></div>
+      <input type="text" id="edWetter" list="wetterListe" value="${esc(ED.wText)}" placeholder="Wetterlage" aria-label="Wetterlage"></div>
       <label class="switch"><input type="checkbox" id="edDayW"${ED.dayWeather ? " checked" : ""}> Auch als Tageswetter für den Bericht vom ${deDate(e.datum)} übernehmen</label></div>
-    ${S.opts.personal ? `<div class="stack"><span class="label">Personal und Firmen</span><div class="stack" id="edPersonal">${ED.personal.map((p, i) => `<div class="prow"><input type="text" data-f list="edFirmen" value="${esc(p.firma)}" placeholder="Firma" aria-label="Firma ${i + 1}"><input type="number" data-a inputmode="numeric" min="0" value="${esc(p.anzahl)}" placeholder="Pers." aria-label="Personen ${i + 1}"><button class="btn quiet small" type="button" data-edprm="${i}" aria-label="Zeile entfernen">×</button></div>`).join("")}</div>
+    ${S.opts.personal ? `<div class="stack"><span class="label">Personal und Firmen</span><div class="stack" id="edPersonal">${ED.personal.map((p, i) => `<div class="prow"><input type="text" data-f list="edFirmen" value="${esc(p.firma)}" placeholder="Firma" aria-label="Firma ${i + 1}"><input type="number" data-a inputmode="numeric" min="0" value="${esc(p.anzahl)}" placeholder="Personen" aria-label="Personen ${i + 1}"><button class="btn quiet small" type="button" data-edprm="${i}" aria-label="Zeile entfernen">×</button></div>`).join("")}</div>
       <datalist id="edFirmen">${meta(e.baustelle).kontakte.map((k) => `<option value="${esc(k.firma)}">`).join("")}</datalist>
       <div class="row"><button class="btn small" type="button" data-edact="addp">Firma hinzufügen</button></div></div>` : ""}
     ${S.opts.plaene ? `<div class="stack"><span class="label">Lage im Plan</span>${plans.length ? `<div class="pinbox">${plan ? `<span class="dotpin"></span><span class="where grow">Plan ${esc(plan.name)}</span><button class="btn small" type="button" data-edact="pin">Ändern</button><button class="btn quiet small danger" type="button" data-edact="unpin">Entfernen</button>`
@@ -1466,58 +1492,7 @@ async function autoWeekReports() {
   }
 }
 
-/* ---------- Beispieldaten ---------- */
-function demoPhoto(label, hue) {
-  const c = document.createElement("canvas"); c.width = 800; c.height = 600; const g = c.getContext("2d");
-  g.fillStyle = `hsl(${hue} 12% 62%)`; g.fillRect(0, 0, 800, 600); g.fillStyle = `hsl(${hue} 10% 48%)`; g.fillRect(0, 380, 800, 220);
-  g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = 6; for (let x = 60; x < 800; x += 140) { g.beginPath(); g.moveTo(x, 80); g.lineTo(x, 380); g.stroke(); }
-  g.fillStyle = "rgba(20,22,24,.75)"; g.fillRect(0, 520, 800, 80); g.fillStyle = "#fff"; g.font = "600 34px Barlow, Arial, sans-serif"; g.fillText("Beispielfoto · " + label, 28, 572);
-  return new Promise((r) => c.toBlob((b) => r(b), "image/jpeg", 0.8));
-}
-function demoPlan(name, rooms) {
-  const W = 1600, H = 1000, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
-  g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
-  const x0 = 160, y0 = 140, gx = 320, gy = 240;
-  g.strokeStyle = "#9aa0a4"; g.setLineDash([18, 8, 4, 8]); g.lineWidth = 1.5; g.font = "600 28px Arial"; g.fillStyle = "#5b6266";
-  "ABCDE".split("").forEach((a, i) => { const x = x0 + i * gx; g.beginPath(); g.moveTo(x, 70); g.lineTo(x, H - 60); g.stroke(); g.beginPath(); g.arc(x, 48, 22, 0, 7); g.stroke(); g.fillText(a, x - 9, 58); });
-  [1, 2, 3, 4].forEach((n, i) => { const y = y0 + i * gy; g.beginPath(); g.moveTo(70, y); g.lineTo(W - 60, y); g.stroke(); g.beginPath(); g.arc(46, y, 22, 0, 7); g.stroke(); g.fillText(String(n), 38, y + 10); });
-  g.setLineDash([]); g.strokeStyle = "#1c2023"; g.lineWidth = 14; g.strokeRect(x0, y0, gx * 4, gy * 3);
-  g.lineWidth = 6; rooms.forEach(([a, b2, c2, d, label]) => { g.strokeRect(x0 + a * gx, y0 + b2 * gy, c2 * gx, d * gy); g.fillStyle = "#1c2023"; g.font = "500 30px Arial"; g.fillText(label, x0 + a * gx + 24, y0 + b2 * gy + 48); });
-  g.fillStyle = "#1c2023"; g.font = "700 46px Arial"; g.fillText(`Beispielplan ${name} · Kita Lindenhof`, x0, H - 20);
-  return new Promise((r) => c.toBlob((b) => r(b), "image/jpeg", 0.85));
-}
-async function seedDemo() {
-  const now = new Date(), d1 = new Date(now); d1.setDate(now.getDate() - 1); const d3 = new Date(now); d3.setDate(now.getDate() - 3);
-  const at = (d, h, m) => { const x = new Date(d); x.setHours(h, m, 0, 0); return x; };
-  const m = meta(DEMO); m.plaene = []; m.kontakte = [
-    { id: uid(), firma: "Stein Trockenbau GmbH", gewerk: "Trockenbau", person: "Herr Stein (Beispiel)", tel: "030 555 0101", mail: "info@stein-beispiel.de", notiz: "Polier ab 7:00 vor Ort" },
-    { id: uid(), firma: "Boden & Co.", gewerk: "Estrich", person: "Frau Yilmaz (Beispiel)", tel: "030 555 0102", mail: "bauleitung@boden-beispiel.de", notiz: "" },
-    { id: uid(), firma: "Elektro Kraus", gewerk: "Elektro", person: "Herr Kraus (Beispiel)", tel: "030 555 0103", mail: "", notiz: "" },
-    { id: uid(), firma: "TGA-Planung Nord", gewerk: "Fachplanung HLS", person: "Frau Lenz (Beispiel)", tel: "", mail: "lenz@tga-beispiel.de", notiz: "Ansprechpartnerin Schlitzplanung" }];
-  const plans = [["EG", [[0, 0, 2, 2, "Gruppenraum 1"], [2, 0, 2, 2, "Gruppenraum 2"], [0, 2, 1, 1, "Küche"], [1, 2, 2, 1, "Flur"], [3, 2, 1, 1, "WC"]]],
-    ["1.OG", [[0, 0, 1.5, 3, "Büro"], [1.5, 0, 2.5, 1.5, "Bewegungsraum"], [1.5, 1.5, 1.5, 1.5, "Schlafraum"], [3, 1.5, 1, 1.5, "Technik"]]]];
-  for (const [name, rooms] of plans) { const blob = await demoPlan(name, rooms); const id = uid(); await DB.put("photos", { id, blob, w: 1600, h: 1000 }); m.plaene.push({ key: uid(), id, name, version: 1, datum: now.toISOString(), w: 1600, h: 1000, path: null, datei: "Beispiel" }); }
-  const [eg, og] = m.plaene;
-  const items = [
-    [d3, 7, 40, "lieferung", "Fensterelemente 1. OG geliefert (12 Stück), Sichtprüfung ohne Befund. Lieferschein abgelegt.", 6, "Bedeckt", "Lieferung", 30, { gewerk: "Fenster", pin: { planKey: og.key, x: 0.5, y: 0.13 } }],
-    [d1, 8, 5, "fortschritt", "Trockenbau 2. OG Achse A–D abgeschlossen.", 4, "Leichter Regen", "Trockenbau", 200, { gewerk: "Trockenbau", personal: [{ firma: "Stein Trockenbau GmbH", anzahl: 4 }, { firma: "Elektro Kraus", anzahl: 2 }] }],
-    [d1, 13, 20, "behinderung", "Kran ab 11:30 außer Betrieb (Windwarnung). Betonage Decke über EG auf morgen verschoben.", 4, "Leichter Regen", null, 0, {}],
-    [now, 7, 55, "mangel", "Im Estrich zeigt sich bei Achse C/3 ein Riss von ca. 1,2 m Länge. Firma Boden & Co. wurde telefonisch informiert und um Stellungnahme gebeten.", 8, "Teilweise bewölkt", "Riss Estrich", 20,
-      { gewerk: "Estrich", ortImBau: "EG, Achse C/3", pin: { planKey: eg.key, x: 0.64, y: 0.62 }, personal: [{ firma: "Boden & Co.", anzahl: 3 }],
-        textRoh: "ja also im estrich achse c drei da is n riss so ungefähr eins zwanzig lang boden und co hab ich angerufen die sollen sich melden", ki: { modell: "Beispiel", zeit: now.toISOString() } }],
-    [now, 10, 30, "besprechung", "Baubesprechung mit Bauherr und TGA-Planung: Schlitze Sanitär 1. OG freigegeben.", 8, "Teilweise bewölkt", null, 0, { ortImBau: "1. OG, Technik", pin: { planKey: og.key, x: 0.82, y: 0.6 } }]
-  ];
-  if (!S.baustellen.includes(DEMO)) S.baustellen.push(DEMO);
-  let nr = 0;
-  for (const [d, h, mi, kat, text, temp, wt, foto, hue, extra] of items) {
-    const ts = at(d, h, mi);
-    const e = Object.assign({ id: uid(), nr: ++nr, baustelle: DEMO, ts: ts.toISOString(), datum: isoDate(ts), kategorie: kat, text, synced: false, beispiel: true, wetter: { temp, text: wt, quelle: "Beispiel" }, fotos: [], personal: [] }, extra);
-    if (foto) { const blob = await demoPhoto(foto, hue); const id = uid(); await DB.put("photos", { id, blob, w: 800, h: 600 }); e.fotos.push({ id, w: 800, h: 600, path: null }); }
-    S.entries.push(e); await DB.put("entries", e); await kvSet(`wetter:${DEMO}|${e.datum}`, e.wetter);
-  }
-  await kvSet("meta:" + DEMO, m); await kvSet("zaehler:" + DEMO, nr); await kvSet("baustellen", S.baustellen); await kvSet("seeded", true); await kvSet("seedVersion", SEED_VERSION);
-  if (!S.aktuell) { S.aktuell = DEMO; await kvSet("aktuell", DEMO); }
-}
+/* ---------- Alte Beispieldaten aufräumen ---------- */
 async function clearDemo() {
   for (const e of S.entries.filter((x) => x.beispiel)) { for (const f of e.fotos) await DB.del("photos", f.id); await DB.del("entries", e.id); }
   for (const p of meta(DEMO).plaene) await DB.del("photos", p.id);
@@ -1553,7 +1528,7 @@ function renderDraftThumbs() {
 }
 function renderPersonalRows() {
   const rows = S.draft.personal.length ? S.draft.personal : [];
-  $("#personalRows").innerHTML = rows.map((p, i) => `<div class="prow"><input type="text" data-f list="firmenListe" value="${esc(p.firma)}" placeholder="Firma" aria-label="Firma ${i + 1}"><input type="number" data-a inputmode="numeric" min="0" value="${esc(p.anzahl)}" placeholder="Pers." aria-label="Personen ${i + 1}"><button class="btn quiet small" type="button" data-prm="${i}" aria-label="Zeile entfernen">×</button></div>`).join("");
+  $("#personalRows").innerHTML = rows.map((p, i) => `<div class="prow"><input type="text" data-f list="firmenListe" value="${esc(p.firma)}" placeholder="Firma" aria-label="Firma ${i + 1}"><input type="number" data-a inputmode="numeric" min="0" value="${esc(p.anzahl)}" placeholder="Personen" aria-label="Personen ${i + 1}"><button class="btn quiet small" type="button" data-prm="${i}" aria-label="Zeile entfernen">×</button></div>`).join("");
   $("#firmenListe").innerHTML = meta(S.aktuell).kontakte.map((k) => `<option value="${esc(k.firma)}">`).join("");
   const n = S.draft.personal.filter((p) => p.firma).length;
   $("#personalSum").textContent = n ? `(${n} ${n === 1 ? "Firma" : "Firmen"}, ${S.draft.personal.reduce((s, p) => s + (Number(p.anzahl) || 0), 0)} Pers.)` : "(optional)";
@@ -1571,6 +1546,7 @@ function renderErfassen() {
   $("#baustelleSel").innerHTML = activeB().length ? baustelleOptions(S.aktuell) : `<option value="">Keine aktive Baustelle</option>`;
   if (!activeB().length) $("#neueBaustelleRow").hidden = false;
   renderChips(); renderDraftThumbs();
+  setGewerk($("#gewerkInput"), $("#gewerkInput").value);
   $("#kiBtn").hidden = !S.ki.key;
   $("#rawBox").hidden = !S.draft.textRoh; $("#rawText").textContent = S.draft.textRoh || "";
   $("#personalCard").hidden = !S.opts.personal; if (S.opts.personal) renderPersonalRows();
@@ -1684,22 +1660,28 @@ function renderBaustellen() {
   const v = $("#bView");
   if (!S.bDetail || !S.baustellen.includes(S.bDetail)) {
     S.bDetail = null;
-    v.innerHTML = `<div class="banner" data-demo-banner ${S.entries.some((e) => e.beispiel) ? "" : "hidden"}><span>Die Baustelle „Beispiel“ enthält Beispieldaten zum Ausprobieren.</span><button class="btn small" type="button" data-remove-demo>Beispieldaten entfernen</button></div>
-      <h2 style="font-size:26px">Baustellen</h2>
+    v.innerHTML = `<h2 style="font-size:26px">Baustellen</h2>
       ${activeB().length ? `<div class="blist">${activeB().map((b) => `<button type="button" class="bitem" data-bopen="${esc(b)}"><span class="nm">${esc(b)}</span><span class="mono">${bauStats(b).replace(/ · /g, "<br>")}</span></button>`).join("")}</div>` : `<div class="empty"><strong>Keine aktive Baustelle</strong>Lege unten eine neue Baustelle an${archB().length ? " oder hole eine aus dem Archiv zurück" : ""}.</div>`}
-      <div class="card"><label class="label" for="bNew">Neue Baustelle</label><div class="row"><input type="text" id="bNew" class="grow" placeholder="Wohnanlage Müllerstraße 12" autocomplete="off"><button class="btn small" type="button" id="bNewOk">Anlegen</button></div><p class="err-text" id="bNewErr" hidden></p></div>
+      <div class="card"><label class="label" for="bNew">Neue Baustelle</label><div class="row"><input type="text" id="bNew" class="grow" placeholder="Name der Baustelle" autocomplete="off"><button class="btn small" type="button" id="bNewOk">Anlegen</button></div><p class="err-text" id="bNewErr" hidden></p></div>
+      <div class="card"><div class="row"><h2 class="grow">Gewerke</h2><span class="mono" style="font-size:13px;color:var(--ink-2)">${S.gewerke.liste.length}</span></div>
+        <p class="hint">Gilt für alle Baustellen. Erscheint beim Erfassen, Bearbeiten und bei Kontakten als Auswahl.</p>
+        <div class="chips">${S.gewerke.liste.map((g) => S.bConfirm === "gw:" + g ? `<span class="confirm">„${esc(g)}“ entfernen? <button class="btn small danger" type="button" data-gwdelyes="${esc(g)}">Entfernen</button><button class="btn quiet small" type="button" data-bcancel>Behalten</button></span>`
+          : `<span class="gw">${esc(g)}<button type="button" data-gwdel="${esc(g)}" aria-label="${esc(g)} entfernen">×</button></span>`).join("")}</div>
+        <div class="row"><input type="text" id="gwNew" class="grow" placeholder="Neues Gewerk" autocomplete="off"><button class="btn small" type="button" id="gwAdd">Hinzufügen</button></div>
+        <p class="err-text" id="gwErr" hidden></p>
+        <p class="hint">Entfernen ändert keine bestehenden Einträge.</p></div>
       ${archB().length ? `<div class="card archive"><div class="row"><h2 class="grow">Archiv</h2><span class="mono" style="font-size:13px;color:var(--ink-2)">${archB().length}</span></div>
         <p class="hint">Archivierte Baustellen erscheinen nicht mehr beim Erfassen. Einträge, Fotos, Pläne und Berichte bleiben vollständig erhalten. In Dropbox liegen sie im Ordner „Archiv“.</p>
         <div class="blist">${archB().map((b) => `<button type="button" class="bitem" data-bopen="${esc(b)}"><span class="nm">${esc(b)}</span><span class="mono">archiviert ${deDate(isoDate(new Date(meta(b).archiviert)))}<br>${S.entries.filter((e) => e.baustelle === b).length} Einträge</span></button>`).join("")}</div></div>` : ""}`;
     return;
   }
   const b = S.bDetail, m = meta(b), plans = plansOf(b), ed = S.bEdit, cf = S.bConfirm;
-  const planForm = ed && ed.type === "plan" && !ed.key ? `<div class="form"><div class="two wrap"><input type="text" id="pName" list="geschossListe" placeholder="Geschoss, z. B. EG" aria-label="Plan-Bezeichnung"><button class="btn" type="button" id="pPick">Datei wählen (PDF oder Bild)</button></div>
+  const planForm = ed && ed.type === "plan" && !ed.key ? `<div class="form"><div class="two wrap"><input type="text" id="pName" list="geschossListe" placeholder="Geschoss" aria-label="Plan-Bezeichnung"><button class="btn" type="button" id="pPick">Datei wählen (PDF oder Bild)</button></div>
       <datalist id="geschossListe">${GESCHOSSE.map((g) => `<option value="${g}">`).join("")}</datalist><p class="hint">Bei PDF-Plänen wird die erste Seite übernommen. Pro Geschoss eine Datei.</p><p class="err-text" id="pErr" hidden></p><div class="row"><button class="btn quiet small" type="button" data-bcancel>Abbrechen</button></div></div>` : "";
   const contactForm = (k) => `<div class="form" data-cform="${k ? k.id : ""}"><input type="text" id="cFirma" value="${esc(k && k.firma)}" placeholder="Firma oder Person" aria-label="Firma">
-      <div class="two wrap"><input type="text" id="cGewerk" value="${esc(k && k.gewerk)}" placeholder="Gewerk, z. B. Elektro" aria-label="Gewerk"><input type="text" id="cPerson" value="${esc(k && k.person)}" placeholder="Ansprechpartner" aria-label="Ansprechpartner"></div>
+      <div class="two wrap"><select id="cGewerk" aria-label="Gewerk">${gewerkOptions(matchGewerk(k && k.gewerk))}</select><input type="text" id="cPerson" value="${esc(k && k.person)}" placeholder="Ansprechpartner" aria-label="Ansprechpartner"></div>
       <div class="two wrap"><input type="tel" id="cTel" value="${esc(k && k.tel)}" placeholder="Telefon" aria-label="Telefon" autocomplete="off"><input type="email" id="cMail" value="${esc(k && k.mail)}" placeholder="E-Mail" aria-label="E-Mail" autocomplete="off"></div>
-      <input type="text" id="cNotiz" value="${esc(k && k.notiz)}" placeholder="Notiz, z. B. Polier ab 7:00 vor Ort" aria-label="Notiz">
+      <input type="text" id="cNotiz" value="${esc(k && k.notiz)}" placeholder="Notiz" aria-label="Notiz">
       <p class="err-text" id="cErr" hidden></p><div class="row"><button class="btn small" type="button" id="cSave">${k ? "Änderung speichern" : "Kontakt speichern"}</button><button class="btn quiet small" type="button" data-bcancel>Abbrechen</button></div></div>`;
   v.innerHTML = `<div class="row"><button class="btn quiet small" type="button" id="bBack">‹ Alle Baustellen</button></div>
     <div class="row"><h2 class="grow" style="font-size:26px">${esc(b)}</h2>${b === DEMO ? '<span class="tag beispiel">Beispiel</span>' : ""}${isArch(b) ? '<span class="tag">Archiv</span>' : ""}</div>
@@ -1713,7 +1695,7 @@ function renderBaustellen() {
         <span class="hint">${S.entries.filter((e) => e.pin && e.pin.planKey === p.key).length} Pins</span>
         ${cf === p.key ? `<div class="confirm">Plan ${esc(p.name)} löschen? Pins darauf werden nicht mehr angezeigt. <button class="btn small danger" type="button" data-pdelyes="${p.key}">Löschen</button><button class="btn quiet small" type="button" data-bcancel>Behalten</button></div>`
           : `<div class="row"><button class="btn small" type="button" data-pview="${p.key}">Ansehen</button><button class="btn small" type="button" data-pupd="${p.key}">Neue Version</button><button class="btn quiet small danger" type="button" data-pdel="${p.key}">Löschen</button></div>`}</div></div>`).join("")}</div>`
-        : (ed && ed.type === "plan" ? "" : `<p class="hint">Noch keine Pläne. Lade z. B. die Grundrisse EG, 1.OG und 2.OG als PDF hoch, dann kannst du Einträge darauf verorten.</p>`)}
+        : (ed && ed.type === "plan" ? "" : `<p class="hint">Noch keine Pläne. Lade Grundrisse als PDF oder Bild hoch, dann kannst du Einträge darauf verorten.</p>`)}
       <p class="hint">„Neue Version“ ersetzt den Plan. Bestehende Pins behalten ihre Position, prüfe sie bei geänderten Grundrissen.</p></div>
     <div class="card"><div class="row"><h2 class="grow">Firmen und Kontakte</h2>${ed && ed.type === "contact" && !ed.id ? "" : `<button class="btn small" type="button" id="cAdd">Kontakt hinzufügen</button>`}</div>
       ${ed && ed.type === "contact" && !ed.id ? contactForm(null) : ""}
@@ -1744,18 +1726,16 @@ function renderOptionen() {
   else if (DBX.connected) box.innerHTML = `<dl class="kv"><dt>Status</dt><dd style="color:var(--ok)">Verbunden</dd><dt>Zielordner</dt><dd>Dropbox / Apps / (Name deiner Dropbox-App)</dd><dt>Offen</dt><dd>${S.entries.filter((e) => !e.synced && !e.beispiel).length} Einträge</dd></dl>
       ${S.sync.state === "error" ? `<p class="err-text">${esc(S.sync.msg)}</p>` : ""}<div class="row"><button class="btn small" type="button" id="dbxSync">Jetzt hochladen</button><button class="btn small" type="button" id="dbxImport">Einträge anderer Geräte laden</button><button class="btn quiet small danger" type="button" id="dbxOff">Trennen</button></div>`;
   else box.innerHTML = `<p class="hint">Einmalig in der Dropbox App Console eine App mit Zugriff „App folder“ anlegen und diese Adresse als Redirect URI eintragen:</p><div class="code">${esc(DBX.redirectUri())}</div>
-      <label class="label" for="dbxKey">App key</label><div class="row"><input type="text" id="dbxKey" class="grow" value="${esc(DBX.key)}" placeholder="z. B. a1b2c3d4e5f6g7h" autocomplete="off" spellcheck="false"><button class="btn small" type="button" id="dbxConnect">Verbinden</button></div><p class="err-text" id="dbxErr" hidden></p>`;
+      <label class="label" for="dbxKey">App key</label><div class="row"><input type="text" id="dbxKey" class="grow" value="${esc(DBX.key)}" placeholder="App key" autocomplete="off" spellcheck="false"><button class="btn small" type="button" id="dbxConnect">Verbinden</button></div><p class="err-text" id="dbxErr" hidden></p>`;
   $("#kiKey").value = S.ki.key; $("#kiModel").value = S.ki.model;
   $("#optPersonal").checked = S.opts.personal; $("#optPlaene").checked = S.opts.plaene; $("#optSig").checked = S.opts.sig; $("#autoWetter").checked = S.opts.autoWetter;
-  const demo = S.entries.some((e) => e.beispiel); $("#removeDemoBtn").hidden = !demo; $("#loadDemoBtn").hidden = demo;
-  $("#dataInfo").innerHTML = `<dt>Einträge</dt><dd>${S.entries.filter((e) => !e.beispiel).length}${demo ? " (plus Beispiele)" : ""}</dd><dt>Speicher</dt><dd>${DB.persistent ? "Im Browser dieses Geräts" : "Nur bis zum Schließen der Seite"}</dd><dt>Fotos</dt><dd>auf max. 1600 px verkleinert, JPEG</dd><dt>Pläne</dt><dd>auf max. 2800 px gerendert</dd>`;
+  $("#dataInfo").innerHTML = `<dt>Einträge</dt><dd>${S.entries.length}</dd><dt>Baustellen</dt><dd>${activeB().length} aktiv, ${archB().length} im Archiv</dd><dt>Speicher</dt><dd>${DB.persistent ? "Im Browser dieses Geräts" : "Nur bis zum Schließen der Seite"}</dd><dt>Fotos</dt><dd>auf max. 1600 px verkleinert, JPEG</dd><dt>Pläne</dt><dd>auf max. 2800 px gerendert</dd>`;
 }
 function render() {
   const v = currentView();
   document.querySelectorAll(".view[id^='v-']").forEach((s) => { s.hidden = s.id !== "v-" + v; });
   document.querySelectorAll(".nav a").forEach((a) => { if (a.dataset.view === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
   const now = new Date(); $("#stamp").textContent = `KW ${isoWeek(now).week} · ${WTAG[now.getDay()].slice(0, 2)} ${pad(now.getDate())}.${pad(now.getMonth() + 1)}.`;
-  const demo = S.entries.some((e) => e.beispiel); document.querySelectorAll("[data-demo-banner]").forEach((x) => { x.hidden = !demo; });
   renderSyncPill();
   if (v === "erfassen") renderErfassen(); if (v === "eintraege") renderEintraege(); if (v === "kalender") renderKalender();
   if (v === "baustellen") renderBaustellen(); if (v === "optionen") renderOptionen();
@@ -1833,6 +1813,14 @@ function bind() {
     const t = e.target.closest("button"); if (!t) return; const b = S.bDetail;
     if (t.dataset.bopen) { S.bDetail = t.dataset.bopen; S.bEdit = null; S.bConfirm = null; renderBaustellen(); window.scrollTo(0, 0); return; }
     if (t.id === "bNewOk") { if (await addBaustelle($("#bNew").value, $("#bNewErr"))) { S.bDetail = S.aktuell; renderBaustellen(); } return; }
+    if (t.id === "gwAdd") {
+      const v = $("#gwNew").value.trim(), er = $("#gwErr"); er.hidden = true;
+      if (!v) { er.textContent = "Gib einen Namen für das Gewerk ein."; er.hidden = false; return; }
+      if (S.gewerke.liste.some((g) => g.toLowerCase() === v.toLowerCase())) { er.textContent = "Dieses Gewerk gibt es schon."; er.hidden = false; return; }
+      S.gewerke.liste.push(v); await saveGewerke(); toast(`Gewerk „${v}“ angelegt.`); renderBaustellen(); $("#gwNew").focus(); return;
+    }
+    if (t.dataset.gwdel) { S.bConfirm = "gw:" + t.dataset.gwdel; renderBaustellen(); return; }
+    if (t.dataset.gwdelyes) { const g = t.dataset.gwdelyes; S.gewerke.liste = S.gewerke.liste.filter((x) => x !== g); S.bConfirm = null; await saveGewerke(); toast(`Gewerk „${g}“ entfernt.`); renderBaustellen(); return; }
     if (t.id === "bBack") { S.bDetail = null; S.bEdit = null; S.bConfirm = null; renderBaustellen(); return; }
     if (t.id === "bArch") { const on = !isArch(b); await setArchived(b, on); S.bConfirm = null; toast(on ? `„${b}“ archiviert.` : `„${b}“ ist wieder aktiv.`); renderBaustellen(); return; }
     if (t.id === "bDelStart") { S.bConfirm = "DEL"; S.bEdit = null; renderBaustellen(); $("#bDelInput").focus(); return; }
@@ -1868,7 +1856,8 @@ function bind() {
       await saveMeta(b); S.bEdit = null; toast(`${firma} gespeichert.`); renderBaustellen();
     }
   });
-  $("#bView").addEventListener("input", (e) => { if (e.target.id === "bDelInput") $("#bDelErr").hidden = true; });
+  $("#bView").addEventListener("input", (e) => { if (e.target.id === "bDelInput") $("#bDelErr").hidden = true; if (e.target.id === "gwNew") $("#gwErr").hidden = true; });
+  $("#bView").addEventListener("keydown", (e) => { if (e.target.id === "gwNew" && e.key === "Enter") $("#gwAdd").click(); });
   $("#bView").addEventListener("keydown", (e) => { if (e.target.id === "bDelInput" && e.key === "Enter") $("#bDelGo").click(); });
   $("#planFile").addEventListener("change", async (e) => {
     const f = e.target.files[0]; e.target.value = ""; if (!f || !planFileTarget) return;
@@ -1903,8 +1892,6 @@ function bind() {
   Object.keys(optMap).forEach((id) => $("#" + id).addEventListener("change", async (e) => { S.opts[optMap[id]] = e.target.checked; await kvSet("opts", S.opts); }));
   $("#kiSave").addEventListener("click", async () => { S.ki = { key: $("#kiKey").value.trim(), model: $("#kiModel").value.trim() || "gemini-2.5-flash" }; await kvSet("ki", S.ki); toast(S.ki.key ? "KI-Einstellungen gespeichert." : "Kein Schlüssel hinterlegt."); });
   $("#kiClear").addEventListener("click", async () => { S.ki.key = ""; await kvSet("ki", S.ki); $("#kiKey").value = ""; toast("Schlüssel gelöscht."); });
-  document.addEventListener("click", (e) => { if (e.target.closest("[data-remove-demo]")) removeDemo(); });
-  $("#loadDemoBtn").addEventListener("click", async () => { await seedDemo(); toast("Beispiel-Baustelle geladen."); render(); });
   $("#dbxBox").addEventListener("click", async (e) => {
     const t = e.target.closest("button"); if (!t) return;
     if (t.id === "dbxConnect") { const k = $("#dbxKey").value.trim(); if (!k) { const er = $("#dbxErr"); er.textContent = "Trage den App key aus der Dropbox App Console ein."; er.hidden = false; return; } DBX.key = k; await kvSet("dbx:key", k); DBX.connect(); }
@@ -1924,9 +1911,10 @@ function bind() {
   const oldW = await kvGet("autoWetter", null); if (oldW !== null && (await kvGet("opts", null)) === null) S.opts.autoWetter = oldW;
   S.ki = Object.assign(S.ki, await kvGet("ki", {}));
   S.rep = Object.assign(S.rep, await kvGet("rep", {}));
+  S.gewerke = await kvGet("gewerke", null) || { liste: sortDe(GEWERKE_STANDARD), geaendert: null };
   for (const b of S.baustellen) { const m = await kvGet("meta:" + b, null); if (m) S.meta[b] = m; }
-  if (S.baustellen.includes(DEMO) && (await kvGet("seedVersion", 1)) < SEED_VERSION) { await clearDemo(); await seedDemo(); }
-  else if (!(await kvGet("seeded", false)) && !S.entries.length) await seedDemo();
+  if (S.baustellen.includes(DEMO) || S.entries.some((e) => e.beispiel)) await clearDemo();
+  await kvSet("seeded", true);
   if (S.aktuell && !S.baustellen.includes(S.aktuell)) S.aktuell = S.baustellen[0] || "";
   const now = new Date(); S.calMonth = new Date(now.getFullYear(), now.getMonth(), 1); S.calDay = isoDate(now);
   $("#textInput").value = await kvGet("draftText", "");

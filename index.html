@@ -1,0 +1,1106 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1c2023">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Bautagebuch">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Bautagebuch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: Telefon = eine Spalte mit Leiste unten; ab 900px = Navigationsleiste links, Inhalt mittig */
+:root {
+  --paper: #eff0ec;
+  --panel: #ffffff;
+  --sunk: #e4e6e0;
+  --ink: #1c2023;
+  --ink-2: #5b6266;
+  --ink-3: #8a9094;
+  --line: #d6d9d2;
+  --accent: #e5a019;
+  --accent-ink: #1c2023;
+  --accent-text: #845500;
+  --accent-soft: #f8e7c2;
+  --danger: #b03a2e;
+  --danger-soft: #f6dcd8;
+  --warn: #8c6200;
+  --warn-soft: #f3e6c4;
+  --ok: #2f6b45;
+  --ok-soft: #dbeadf;
+  --f-display: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Barlow", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --r: 6px;
+  --nav-h: 64px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #141719; --panel: #1d2124; --sunk: #262b2e; --ink: #e8ebe6; --ink-2: #a5aca8; --ink-3: #7b8380;
+    --line: #343a3d; --accent: #f0b13a; --accent-ink: #1c2023; --accent-text: #f0b13a; --accent-soft: #3a3020;
+    --danger: #ec8a7e; --danger-soft: #3c2422; --warn: #e8c069; --warn-soft: #3a3120; --ok: #8ccaa0; --ok-soft: #1f3327;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #141719; --panel: #1d2124; --sunk: #262b2e; --ink: #e8ebe6; --ink-2: #a5aca8; --ink-3: #7b8380;
+  --line: #343a3d; --accent: #f0b13a; --accent-ink: #1c2023; --accent-text: #f0b13a; --accent-soft: #3a3020;
+  --danger: #ec8a7e; --danger-soft: #3c2422; --warn: #e8c069; --warn-soft: #3a3120; --ok: #8ccaa0; --ok-soft: #1f3327;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--panel); }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; margin: 0; line-height: 1.15; text-wrap: balance; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* Kopfzeile */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.top-inner { max-width: 980px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex: 1; }
+.brand h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.01em; }
+.brand .stamp { font-family: var(--f-mono); font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 4px 10px; border-radius: 999px;
+  background: var(--sunk); color: var(--ink-2); white-space: nowrap; border: 0;
+}
+.pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
+.pill.ok { background: var(--ok-soft); color: var(--ok); } .pill.ok .dot { background: var(--ok); }
+.pill.wait { background: var(--warn-soft); color: var(--warn); } .pill.wait .dot { background: var(--warn); }
+.pill.err { background: var(--danger-soft); color: var(--danger); } .pill.err .dot { background: var(--danger); }
+
+/* Rahmen */
+.shell { max-width: 980px; margin: 0 auto; }
+main {
+  padding-block: 16px calc(var(--nav-h) + 32px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.view { display: flex; flex-direction: column; gap: 16px; max-width: 680px; margin: 0 auto; }
+.nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--panel); border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
+}
+.nav a {
+  height: var(--nav-h); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  text-decoration: none; color: var(--ink-2); font-family: var(--f-display); font-size: 13px; font-weight: 600; letter-spacing: 0.02em;
+  border-top: 3px solid transparent;
+}
+.nav a svg { width: 22px; height: 22px; }
+.nav a[aria-current="page"] { color: var(--ink); border-top-color: var(--accent); }
+@media (min-width: 900px) {
+  .shell { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .nav { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); align-self: start; display: flex; flex-direction: column; border: 0; background: transparent; padding: 16px 0 0; }
+  .nav a { height: auto; flex-direction: row; justify-content: flex-start; gap: 10px; padding: 10px 12px; border-top: 0; border-left: 3px solid transparent; font-size: 16px; }
+  .nav a[aria-current="page"] { border-left-color: var(--accent); background: var(--panel); border-top-color: transparent; }
+  main { padding-left: 0; padding-right: 0; padding-bottom: 48px; }
+}
+
+/* Bausteine */
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.label { font-family: var(--f-display); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.grow { flex: 1; min-width: 0; }
+select, input[type="text"], input[type="number"], input[type="search"], textarea {
+  width: 100%; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; min-height: 44px;
+}
+textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px;
+  border-radius: var(--r); border: 1px solid var(--line); background: var(--panel); font-weight: 500; text-decoration: none; color: var(--ink);
+}
+.btn:hover { background: var(--sunk); }
+.btn svg { width: 20px; height: 20px; flex: none; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-family: var(--f-display); font-size: 18px; font-weight: 700; letter-spacing: 0.02em; }
+.btn.primary:hover { filter: brightness(1.04); }
+.btn.quiet { border-color: transparent; background: transparent; color: var(--ink-2); padding: 0 8px; }
+.btn.quiet:hover { background: var(--sunk); color: var(--ink); }
+.btn.danger { color: var(--danger); }
+.btn.small { min-height: 34px; padding: 0 12px; font-size: 14px; }
+.btn.block { width: 100%; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 1px solid var(--line); background: var(--panel); border-radius: 4px; padding: 7px 12px; min-height: 38px;
+  font-family: var(--f-display); font-weight: 600; font-size: 15px; letter-spacing: 0.02em; color: var(--ink-2);
+}
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--panel); }
+.tag {
+  display: inline-block; font-family: var(--f-display); font-weight: 600; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 3px; background: var(--sunk); color: var(--ink-2); white-space: nowrap;
+}
+.tag.mangel { background: var(--danger-soft); color: var(--danger); }
+.tag.behinderung { background: var(--warn-soft); color: var(--warn); }
+.tag.beispiel { background: transparent; border: 1px dashed var(--ink-3); color: var(--ink-3); }
+.hint { font-size: 14px; color: var(--ink-2); margin: 0; }
+.note { font-size: 14px; color: var(--warn); background: var(--warn-soft); border-radius: var(--r); padding: 10px 12px; margin: 0; }
+.err-text { font-size: 14px; color: var(--danger); margin: 0; }
+
+/* Fotos */
+.thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
+.thumb { position: relative; aspect-ratio: 1; max-width: 100%; border-radius: 4px; overflow: hidden; background: var(--sunk); }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb .x {
+  position: absolute; top: 4px; right: 4px; width: 28px; height: 28px; border-radius: 50%; border: 0;
+  background: rgba(20,22,24,.72); color: #fff; display: grid; place-items: center; font-size: 16px; line-height: 1;
+}
+.shoot {
+  border: 1.5px dashed var(--ink-3); border-radius: var(--r); background: var(--paper); min-height: 96px;
+  display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--ink-2); font-family: var(--f-display); font-weight: 600; font-size: 18px; width: 100%;
+}
+.shoot svg { width: 28px; height: 28px; }
+
+/* Wetter */
+.weather { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px; }
+.weather .unit { position: relative; }
+.weather .unit span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
+
+/* Einträge */
+.day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding-top: 8px; border-bottom: 2px solid var(--ink); padding-bottom: 4px; }
+.day-head h2 { font-size: 19px; }
+.day-head .mono { font-size: 12px; color: var(--ink-2); }
+.entry { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.entry-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 14px; color: var(--ink-2); }
+.entry-head .nr { font-family: var(--f-mono); font-weight: 500; color: var(--ink); font-size: 14px; }
+.entry-head .sync { margin-left: auto; font-size: 12px; }
+.entry-text { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+.entry-meta { font-size: 13px; color: var(--ink-3); margin: 0; }
+.entry .thumbs { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+.confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--danger-soft); color: var(--danger); padding: 8px 10px; border-radius: var(--r); font-size: 14px; }
+.filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.filters .full { grid-column: 1 / -1; }
+.empty { text-align: center; padding: 32px 16px; color: var(--ink-2); border: 1.5px dashed var(--line); border-radius: var(--r); }
+.empty strong { display: block; font-family: var(--f-display); font-size: 20px; color: var(--ink); margin-bottom: 4px; }
+
+/* Kalender */
+.cal-head { display: flex; align-items: center; gap: 8px; }
+.cal-head h2 { flex: 1; font-size: 22px; text-align: center; }
+.cal { display: grid; grid-template-columns: 34px repeat(7, minmax(0, 1fr)); gap: 3px; }
+.cal .wd { font-family: var(--f-display); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); text-align: center; padding: 4px 0; }
+.cal .kw { font-family: var(--f-mono); font-size: 11px; color: var(--ink-3); display: flex; align-items: center; justify-content: center; }
+.cal .d {
+  aspect-ratio: 1; min-height: 40px; border: 1px solid var(--line); background: var(--panel); border-radius: 4px; padding: 4px;
+  display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; font-family: var(--f-mono); font-size: 13px;
+}
+.cal .d.out { background: transparent; border-color: transparent; color: var(--ink-3); }
+.cal .d.weekend { background: var(--paper); }
+.cal .d.today { border-color: var(--ink); border-width: 2px; }
+.cal .d.sel { outline: 3px solid var(--accent); outline-offset: -1px; }
+.cal .d .n { align-self: flex-end; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 500; display: grid; place-items: center; }
+.cal .d.gap .n { background: transparent; border: 1px dashed var(--danger); color: var(--danger); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 14px; height: 14px; border-radius: 7px; vertical-align: -2px; margin-right: 6px; }
+.mini { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; font-size: 15px; padding: 8px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.mini:last-child { border-bottom: 0; }
+.mini .mono { font-size: 13px; color: var(--ink-2); flex: none; }
+.mini p { margin: 0; min-width: 0; overflow-wrap: anywhere; flex: 1 1 100%; }
+.mini p.grow { flex: 1 1 0; }
+
+/* Einstellungen */
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 16px; font-size: 14px; margin: 0; }
+.kv dt { color: var(--ink-2); } .kv dd { margin: 0; overflow-wrap: anywhere; }
+.code { font-family: var(--f-mono); font-size: 13px; background: var(--sunk); padding: 8px 10px; border-radius: 4px; overflow-x: auto; white-space: nowrap; }
+.switch { display: flex; align-items: center; gap: 12px; }
+.switch input { width: 22px; height: 22px; accent-color: var(--accent); }
+
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 40;
+  bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom, 0px));
+  background: var(--ink); color: var(--panel); padding: 10px 16px; border-radius: var(--r); font-size: 15px;
+  max-width: min(92vw, 520px); box-shadow: 0 6px 24px rgba(0,0,0,.18);
+}
+@media (min-width: 900px) { .toast { bottom: 24px; } }
+.banner { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; border: 1px dashed var(--ink-3); border-radius: var(--r); padding: 10px 12px; font-size: 14px; color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand"><h1>Bautagebuch</h1><span class="stamp" id="stamp"></span></div>
+    <button class="pill" id="syncPill" type="button"><span class="dot"></span><span id="syncText">Lokal gespeichert</span></button>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="nav" aria-label="Bereiche">
+    <a href="#erfassen" data-view="erfassen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Erfassen</a>
+    <a href="#eintraege" data-view="eintraege"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Einträge</a>
+    <a href="#kalender" data-view="kalender"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5"/></svg>Kalender</a>
+    <a href="#einstellungen" data-view="einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Einstellungen</a>
+  </nav>
+
+  <main>
+    <!-- Erfassen -->
+    <section class="view" id="v-erfassen" hidden>
+      <div class="card">
+        <label class="label" for="baustelleSel">Baustelle</label>
+        <div class="row">
+          <select id="baustelleSel" class="grow"></select>
+          <button class="btn small" type="button" id="neueBaustelleBtn">Neu</button>
+        </div>
+        <div class="row" id="neueBaustelleRow" hidden>
+          <input type="text" id="neueBaustelleInput" class="grow" placeholder="Wohnanlage Müllerstraße 12" autocomplete="off">
+          <button class="btn small" type="button" id="neueBaustelleOk">Anlegen</button>
+        </div>
+        <p class="err-text" id="baustelleErr" hidden></p>
+      </div>
+
+      <div class="card">
+        <span class="label">Kategorie</span>
+        <div class="chips" id="katChips"></div>
+      </div>
+
+      <div class="card">
+        <span class="label">Fotos</span>
+        <div class="thumbs" id="draftThumbs"></div>
+        <button class="shoot" type="button" id="shootBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Foto aufnehmen</button>
+        <button class="btn quiet small" type="button" id="libBtn">Aus der Mediathek wählen</button>
+        <input type="file" id="camInput" accept="image/*" capture="environment" hidden>
+        <input type="file" id="libInput" accept="image/*" multiple hidden>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <label class="label grow" for="textInput">Beschreibung</label>
+          <button class="btn small" type="button" id="dictBtn" hidden>Diktieren</button>
+          <button class="btn quiet small" type="button" id="vortagBtn">Vom Vortag übernehmen</button>
+        </div>
+        <textarea id="textInput" placeholder="Trockenbau 2. OG abgeschlossen, Firma Stein mit 4 Mann vor Ort. Estrich Achse C zeigt Riss, ca. 1,2 m."></textarea>
+        <p class="hint" id="dictHint">Zum Diktieren auf der iPhone-Tastatur das Mikrofon antippen.</p>
+      </div>
+
+      <div class="card">
+        <div class="row"><span class="label grow">Wetter</span><span class="hint" id="wetterState"></span></div>
+        <div class="weather">
+          <div class="unit"><input type="number" id="tempInput" inputmode="decimal" placeholder="8" aria-label="Temperatur in Grad Celsius"><span>°C</span></div>
+          <input type="text" id="wetterInput" list="wetterListe" placeholder="Bewölkt, trocken" aria-label="Wetterlage">
+          <datalist id="wetterListe"><option value="Klar"><option value="Teilweise bewölkt"><option value="Bedeckt"><option value="Nebel"><option value="Nieselregen"><option value="Regen"><option value="Starkregen"><option value="Schneefall"><option value="Frost"><option value="Sturm"><option value="Gewitter"></datalist>
+        </div>
+      </div>
+
+      <p class="err-text" id="saveErr" hidden></p>
+      <button class="btn primary block" type="button" id="saveBtn">Eintrag speichern</button>
+    </section>
+
+    <!-- Einträge -->
+    <section class="view" id="v-eintraege" hidden>
+      <div class="banner" id="demoBanner1" hidden><span>Die Baustelle „Beispiel“ enthält Beispieldaten zum Ausprobieren.</span><button class="btn small" type="button" data-remove-demo>Beispieldaten entfernen</button></div>
+      <div class="filters">
+        <select id="fBaustelle" aria-label="Baustelle filtern"></select>
+        <select id="fKat" aria-label="Kategorie filtern"></select>
+        <input type="search" id="fText" class="full" placeholder="Text oder Nummer suchen, z. B. Estrich oder BT-0012" aria-label="Suchen">
+      </div>
+      <div id="entryList" class="view" style="gap:10px"></div>
+    </section>
+
+    <!-- Kalender -->
+    <section class="view" id="v-kalender" hidden>
+      <div class="banner" id="demoBanner2" hidden><span>Die Baustelle „Beispiel“ enthält Beispieldaten zum Ausprobieren.</span><button class="btn small" type="button" data-remove-demo>Beispieldaten entfernen</button></div>
+      <select id="calBaustelle" aria-label="Baustelle für Kalender"></select>
+      <div class="card">
+        <div class="cal-head">
+          <button class="btn quiet" type="button" id="calPrev" aria-label="Vorheriger Monat">‹</button>
+          <h2 id="calTitle"></h2>
+          <button class="btn quiet" type="button" id="calNext" aria-label="Nächster Monat">›</button>
+        </div>
+        <div class="cal" id="calGrid"></div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Einträge vorhanden</span><span><i style="border:1px dashed var(--danger)"></i>Werktag ohne Eintrag</span></div>
+      </div>
+      <div class="card" id="dayPanel"></div>
+    </section>
+
+    <!-- Einstellungen -->
+    <section class="view" id="v-einstellungen" hidden>
+      <div class="card">
+        <h2>Dropbox</h2>
+        <div id="dbxBox"></div>
+      </div>
+      <div class="card">
+        <h2>Baustellen</h2>
+        <div id="baustellenList"></div>
+      </div>
+      <div class="card">
+        <h2>Erfassung</h2>
+        <label class="switch"><input type="checkbox" id="autoWetter"> Wetter beim Öffnen automatisch per Standort abrufen</label>
+        <p class="hint">Das Wetter wird pro Tag und Baustelle gespeichert. Ein Tagesbericht, den du erst später erstellst, nutzt trotzdem das Wetter des richtigen Tages.</p>
+      </div>
+      <div class="card">
+        <h2>Daten</h2>
+        <dl class="kv" id="dataInfo"></dl>
+        <button class="btn small" type="button" data-remove-demo id="removeDemoBtn" hidden>Beispieldaten entfernen</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+"use strict";
+/* ---------- Konstanten und Hilfen ---------- */
+const KATS = [
+  ["fortschritt", "Fortschritt"], ["mangel", "Mangel"], ["behinderung", "Behinderung"], ["lieferung", "Lieferung"],
+  ["abnahme", "Abnahme"], ["besprechung", "Besprechung"], ["sonstiges", "Sonstiges"]
+];
+const KAT_LABEL = Object.fromEntries(KATS);
+const WTAG = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+const MONATE = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+const DEMO = "Beispiel: Kita Lindenhof";
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pad = (n, l = 2) => String(n).padStart(l, "0");
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const isoDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseIso = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const deDate = (s) => { const [y, m, d] = s.split("-"); return `${d}.${m}.${y}`; };
+const hhmm = (iso) => { const d = new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const nrText = (n) => `BT-${pad(n, 4)}`;
+function isoWeek(d) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y = t.getUTCFullYear();
+  return { year: y, week: Math.ceil(((t - Date.UTC(y, 0, 1)) / 86400000 + 1) / 7) };
+}
+const safeName = (s) => (String(s).replace(/[\\/:*?"<>|]/g, "-").replace(/\s+/g, " ").trim() || "Baustelle");
+const WMO = { 0: "Klar", 1: "Überwiegend klar", 2: "Teilweise bewölkt", 3: "Bedeckt", 45: "Nebel", 48: "Nebel mit Reif",
+  51: "Leichter Nieselregen", 53: "Nieselregen", 55: "Starker Nieselregen", 56: "Gefrierender Nieselregen", 57: "Gefrierender Nieselregen",
+  61: "Leichter Regen", 63: "Regen", 65: "Starkregen", 66: "Gefrierender Regen", 67: "Gefrierender Regen",
+  71: "Leichter Schneefall", 73: "Schneefall", 75: "Starker Schneefall", 77: "Schneegriesel",
+  80: "Regenschauer", 81: "Regenschauer", 82: "Heftige Regenschauer", 85: "Schneeschauer", 86: "Schneeschauer",
+  95: "Gewitter", 96: "Gewitter mit Hagel", 99: "Gewitter mit Hagel" };
+const HOSTED = location.protocol === "https:" && !/claude|anthropic/i.test(location.hostname);
+
+let toastTimer;
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
+}
+
+/* ---------- Speicher (IndexedDB, sonst Arbeitsspeicher) ---------- */
+const DB = (() => {
+  let db = null;
+  const mem = { entries: new Map(), photos: new Map(), kv: new Map() };
+  async function open() {
+    try {
+      db = await new Promise((res, rej) => {
+        const r = indexedDB.open("bautagebuch", 1);
+        r.onupgradeneeded = () => {
+          const d = r.result;
+          d.createObjectStore("entries", { keyPath: "id" });
+          d.createObjectStore("photos", { keyPath: "id" });
+          d.createObjectStore("kv", { keyPath: "k" });
+        };
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+    } catch (e) { db = null; }
+  }
+  function tx(store, mode, fn) {
+    return new Promise((res, rej) => {
+      const t = db.transaction(store, mode);
+      const req = fn(t.objectStore(store));
+      t.oncomplete = () => res(req ? req.result : undefined);
+      t.onerror = () => rej(t.error);
+      t.onabort = () => rej(t.error);
+    });
+  }
+  return {
+    open,
+    get persistent() { return !!db; },
+    async all(s) { if (!db) return [...mem[s].values()]; try { return await tx(s, "readonly", (o) => o.getAll()); } catch (e) { return []; } },
+    async get(s, k) { if (!db) return mem[s].get(k); try { return await tx(s, "readonly", (o) => o.get(k)); } catch (e) { return undefined; } },
+    async put(s, v) { if (!db) { mem[s].set(v.id ?? v.k, v); return; } return tx(s, "readwrite", (o) => o.put(v)); },
+    async del(s, k) { if (!db) { mem[s].delete(k); return; } return tx(s, "readwrite", (o) => o.delete(k)); }
+  };
+})();
+async function kvGet(k, def) { const r = await DB.get("kv", k); return r === undefined ? def : r.v; }
+async function kvSet(k, v) { await DB.put("kv", { k, v }); }
+
+/* ---------- Zustand ---------- */
+const S = {
+  entries: [], baustellen: [], aktuell: "", autoWetter: true,
+  draft: { kat: "fortschritt", fotos: [], text: "", temp: "", wetter: "", wetterAuto: null, ort: null },
+  calMonth: null, calDay: null, calBaustelle: "",
+  editId: null, confirmId: null,
+  sync: { state: "idle", msg: "" }
+};
+const urlCache = new Map();
+
+/* ---------- Fotos ---------- */
+async function compress(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    const s = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.round(img.naturalWidth * s), h = Math.round(img.naturalHeight * s);
+    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    c.getContext("2d").drawImage(img, 0, 0, w, h);
+    const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.8));
+    return { blob, w, h };
+  } finally { URL.revokeObjectURL(url); }
+}
+async function getPhotoBlob(f) {
+  const rec = await DB.get("photos", f.id);
+  if (rec && rec.blob) return rec;
+  if (f.path && DBX.connected && navigator.onLine) {
+    const blob = await DBX.download(f.path);
+    if (blob) { const r = { id: f.id, blob, w: f.w, h: f.h }; await DB.put("photos", r); return r; }
+  }
+  return null;
+}
+async function photoUrl(f) {
+  if (urlCache.has(f.id)) return urlCache.get(f.id);
+  try {
+    const rec = await getPhotoBlob(f);
+    if (!rec) return null;
+    const u = URL.createObjectURL(rec.blob); urlCache.set(f.id, u); return u;
+  } catch (e) { return null; }
+}
+function fillThumbs(root) {
+  root.querySelectorAll("img[data-photo]").forEach(async (img) => {
+    const e = S.entries.find((x) => x.id === img.dataset.entry);
+    const f = e && e.fotos.find((x) => x.id === img.dataset.photo);
+    if (!f) return;
+    const u = await photoUrl(f);
+    if (u) img.src = u; else img.alt = "Foto nicht geladen";
+  });
+}
+
+/* ---------- Dropbox ---------- */
+function hdr(o) { return JSON.stringify(o).replace(/[\u007f-￿]/g, (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")); }
+function randStr(n) { const a = new Uint8Array(n); crypto.getRandomValues(a); return Array.from(a, (b) => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"[b % 66]).join(""); }
+async function sha256url(s) {
+  const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return btoa(String.fromCharCode(...new Uint8Array(h))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+const DBX = {
+  key: "", tokens: null,
+  get connected() { return !!(this.tokens && this.tokens.refresh_token); },
+  redirectUri() { return location.origin + location.pathname; },
+  async init() {
+    this.key = await kvGet("dbx:key", "");
+    this.tokens = await kvGet("dbx:tokens", null);
+    const q = new URLSearchParams(location.search);
+    if (q.get("error")) { history.replaceState(null, "", location.pathname + location.hash); toast("Dropbox-Verbindung abgebrochen."); return; }
+    const code = q.get("code");
+    if (!code) return;
+    history.replaceState(null, "", location.pathname + "#einstellungen");
+    try {
+      const body = new URLSearchParams({ code, grant_type: "authorization_code", code_verifier: await kvGet("dbx:verifier", ""), client_id: this.key, redirect_uri: this.redirectUri() });
+      const r = await fetch("https://api.dropboxapi.com/oauth2/token", { method: "POST", body });
+      if (!r.ok) throw new Error(await r.text());
+      const j = await r.json();
+      this.tokens = { access_token: j.access_token, refresh_token: j.refresh_token, exp: Date.now() + (j.expires_in - 60) * 1000, account: j.account_id };
+      await kvSet("dbx:tokens", this.tokens); await kvSet("dbx:verifier", "");
+      toast("Mit Dropbox verbunden.");
+    } catch (e) { toast("Dropbox-Anmeldung fehlgeschlagen. App-Key und Redirect-URI prüfen."); }
+  },
+  async connect() {
+    const v = randStr(64); await kvSet("dbx:verifier", v);
+    const p = new URLSearchParams({ client_id: this.key, response_type: "code", code_challenge: await sha256url(v), code_challenge_method: "S256", token_access_type: "offline", redirect_uri: this.redirectUri() });
+    location.href = "https://www.dropbox.com/oauth2/authorize?" + p;
+  },
+  async disconnect() {
+    try { await fetch("https://api.dropboxapi.com/2/auth/token/revoke", { method: "POST", headers: { Authorization: "Bearer " + await this.token() } }); } catch (e) {}
+    this.tokens = null; await kvSet("dbx:tokens", null);
+  },
+  async token() {
+    if (this.tokens.access_token && this.tokens.exp > Date.now()) return this.tokens.access_token;
+    const body = new URLSearchParams({ grant_type: "refresh_token", refresh_token: this.tokens.refresh_token, client_id: this.key });
+    const r = await fetch("https://api.dropboxapi.com/oauth2/token", { method: "POST", body });
+    if (!r.ok) { const e = new Error("Anmeldung abgelaufen. Bitte neu verbinden."); e.auth = true; throw e; }
+    const j = await r.json();
+    this.tokens.access_token = j.access_token; this.tokens.exp = Date.now() + (j.expires_in - 60) * 1000;
+    await kvSet("dbx:tokens", this.tokens);
+    return j.access_token;
+  },
+  async rpc(ep, args) {
+    const r = await fetch("https://api.dropboxapi.com/2/" + ep, { method: "POST", headers: { Authorization: "Bearer " + await this.token(), "Content-Type": "application/json" }, body: JSON.stringify(args) });
+    if (!r.ok) { const e = new Error(await r.text()); e.status = r.status; throw e; }
+    return r.json();
+  },
+  async upload(path, blob) {
+    const r = await fetch("https://content.dropboxapi.com/2/files/upload", { method: "POST", headers: { Authorization: "Bearer " + await this.token(), "Content-Type": "application/octet-stream", "Dropbox-API-Arg": hdr({ path, mode: "overwrite", autorename: false, mute: true }) }, body: blob });
+    if (!r.ok) throw new Error("Upload fehlgeschlagen: " + path);
+    return r.json();
+  },
+  async download(path) {
+    const r = await fetch("https://content.dropboxapi.com/2/files/download", { method: "POST", headers: { Authorization: "Bearer " + await this.token(), "Dropbox-API-Arg": hdr({ path }) } });
+    if (r.status === 409) return null;
+    if (!r.ok) throw new Error("Download fehlgeschlagen: " + path);
+    return r.blob();
+  }
+};
+function photoPath(e, i) {
+  const d = parseIso(e.datum), kw = isoWeek(d), t = new Date(e.ts);
+  return `/${safeName(e.baustelle)}/${kw.year}-KW${pad(kw.week)}/${nrText(e.nr)}_${e.datum}_${pad(t.getHours())}${pad(t.getMinutes())}_${e.kategorie}_${i + 1}.jpg`;
+}
+function serialize(e) {
+  return { id: e.id, nr: e.nr, nummer: nrText(e.nr), baustelle: e.baustelle, zeitpunkt: e.ts, datum: e.datum, kategorie: e.kategorie,
+    text: e.text, textOriginal: e.textOriginal || null, bearbeitet: e.bearbeitet || null, wetter: e.wetter || null, ort: e.ort || null,
+    fotos: e.fotos.map((f) => ({ id: f.id, path: f.path, w: f.w, h: f.h })) };
+}
+async function loadRemote(b) {
+  const blob = await DBX.download(`/${safeName(b)}/eintraege.json`);
+  if (!blob) return null;
+  try { return JSON.parse(await blob.text()); } catch (e) { return null; }
+}
+async function sync(manual) {
+  if (S.sync.state === "running") return;
+  if (!DBX.connected) { if (manual) toast("Dropbox ist nicht verbunden."); return; }
+  if (!navigator.onLine) { if (manual) toast("Kein Netz. Upload folgt automatisch."); return; }
+  setSync("running");
+  try {
+    const pending = S.entries.filter((e) => !e.synced && !e.beispiel);
+    const groups = [...new Set(pending.map((e) => e.baustelle))];
+    for (const b of groups) {
+      for (const e of pending.filter((x) => x.baustelle === b)) {
+        for (let i = 0; i < e.fotos.length; i++) {
+          const f = e.fotos[i];
+          if (f.path) continue;
+          const rec = await DB.get("photos", f.id);
+          if (!rec) continue;
+          const p = photoPath(e, i);
+          await DBX.upload(p, rec.blob);
+          f.path = p; await DB.put("entries", e);
+        }
+      }
+      const remote = (await loadRemote(b)) || { version: 1, baustelle: b, eintraege: [], wetter: {} };
+      const map = new Map((remote.eintraege || []).map((x) => [x.id, x]));
+      S.entries.filter((e) => e.baustelle === b && !e.beispiel).forEach((e) => map.set(e.id, serialize(e)));
+      remote.eintraege = [...map.values()].sort((a, c) => a.nr - c.nr);
+      remote.zaehler = Math.max(remote.zaehler || 0, await kvGet("zaehler:" + b, 0));
+      remote.wetter = remote.wetter || {};
+      for (const d of new Set(S.entries.filter((e) => e.baustelle === b).map((e) => e.datum))) {
+        const w = await kvGet(`wetter:${b}|${d}`, null);
+        if (w) remote.wetter[d] = w;
+      }
+      remote.aktualisiert = new Date().toISOString();
+      await DBX.upload(`/${safeName(b)}/eintraege.json`, new Blob([JSON.stringify(remote, null, 2)], { type: "application/json" }));
+      for (const e of pending.filter((x) => x.baustelle === b)) { e.synced = true; await DB.put("entries", e); }
+    }
+    setSync("idle");
+    if (manual) toast(pending.length ? `${pending.length} Einträge hochgeladen.` : "Alles ist bereits in Dropbox.");
+  } catch (e) {
+    setSync("error", e.message);
+    if (manual) toast(e.message);
+  }
+  render();
+}
+async function importRemote(manual) {
+  if (!DBX.connected || !navigator.onLine) return;
+  try {
+    const res = await DBX.rpc("files/list_folder", { path: "" });
+    let neu = 0;
+    for (const it of res.entries.filter((x) => x[".tag"] === "folder")) {
+      const blob = await DBX.download(`/${it.name}/eintraege.json`);
+      if (!blob) continue;
+      let j; try { j = JSON.parse(await blob.text()); } catch (e) { continue; }
+      const b = j.baustelle || it.name;
+      if (!S.baustellen.includes(b)) { S.baustellen.push(b); await kvSet("baustellen", S.baustellen); }
+      if ((j.zaehler || 0) > await kvGet("zaehler:" + b, 0)) await kvSet("zaehler:" + b, j.zaehler);
+      for (const [d, w] of Object.entries(j.wetter || {})) if (!(await kvGet(`wetter:${b}|${d}`, null))) await kvSet(`wetter:${b}|${d}`, w);
+      for (const x of j.eintraege || []) {
+        if (S.entries.some((e) => e.id === x.id)) continue;
+        const e = { id: x.id, nr: x.nr, baustelle: b, ts: x.zeitpunkt, datum: x.datum, kategorie: x.kategorie, text: x.text,
+          textOriginal: x.textOriginal, bearbeitet: x.bearbeitet, wetter: x.wetter, ort: x.ort, synced: true, remote: true,
+          fotos: (x.fotos || []).map((f) => ({ id: f.id || uid(), path: f.path, w: f.w, h: f.h })) };
+        S.entries.push(e); await DB.put("entries", e); neu++;
+      }
+    }
+    if (manual) toast(neu ? `${neu} Einträge aus Dropbox geladen.` : "Keine neuen Einträge in Dropbox.");
+    render();
+  } catch (e) { if (manual) toast("Laden fehlgeschlagen: " + e.message); }
+}
+function setSync(state, msg = "") { S.sync = { state, msg }; renderSyncPill(); }
+
+/* ---------- Wetter ---------- */
+async function loadWeather(manual) {
+  const st = $("#wetterState");
+  if (!navigator.geolocation) { if (manual) st.textContent = "Standort nicht verfügbar"; return; }
+  st.textContent = "Wetter wird abgerufen …";
+  try {
+    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 9000, maximumAge: 600000 }));
+    const lat = +pos.coords.latitude.toFixed(4), lon = +pos.coords.longitude.toFixed(4);
+    S.draft.ort = { lat, lon };
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`);
+    if (!r.ok) throw new Error();
+    const c = (await r.json()).current;
+    const w = { temp: Math.round(c.temperature_2m), text: WMO[c.weather_code] || "Unbekannt", wind: Math.round(c.wind_speed_10m), quelle: "Open-Meteo", zeit: new Date().toISOString() };
+    S.draft.wetterAuto = w; S.draft.temp = String(w.temp); S.draft.wetter = w.text;
+    $("#tempInput").value = w.temp; $("#wetterInput").value = w.text;
+    st.textContent = `automatisch, ${hhmm(w.zeit)} Uhr · Wind ${w.wind} km/h`;
+    const key = `wetter:${S.aktuell}|${isoDate(new Date())}`;
+    if (S.aktuell && !(await kvGet(key, null))) await kvSet(key, w);
+  } catch (e) {
+    st.textContent = "Bitte von Hand eintragen";
+  }
+}
+
+/* ---------- Einträge anlegen und ändern ---------- */
+async function nextNr(b) { const n = (await kvGet("zaehler:" + b, 0)) + 1; await kvSet("zaehler:" + b, n); return n; }
+async function saveEntry() {
+  const err = $("#saveErr"); err.hidden = true;
+  const text = $("#textInput").value.trim();
+  if (!S.aktuell) { err.textContent = "Lege zuerst eine Baustelle an."; err.hidden = false; return; }
+  if (!text && !S.draft.fotos.length) { err.textContent = "Füge ein Foto oder eine Beschreibung hinzu."; err.hidden = false; return; }
+  const now = new Date();
+  const e = {
+    id: uid(), nr: await nextNr(S.aktuell), baustelle: S.aktuell, ts: now.toISOString(), datum: isoDate(now),
+    kategorie: S.draft.kat, text, synced: false, beispiel: S.aktuell === DEMO,
+    wetter: ($("#tempInput").value !== "" || $("#wetterInput").value.trim()) ? { temp: $("#tempInput").value === "" ? null : Number($("#tempInput").value), text: $("#wetterInput").value.trim(), quelle: S.draft.wetterAuto && $("#wetterInput").value.trim() === S.draft.wetterAuto.text ? "Open-Meteo" : "manuell" } : null,
+    ort: S.draft.ort, fotos: []
+  };
+  for (const p of S.draft.fotos) {
+    await DB.put("photos", { id: p.id, blob: p.blob, w: p.w, h: p.h });
+    e.fotos.push({ id: p.id, w: p.w, h: p.h, path: null });
+    urlCache.set(p.id, p.url);
+  }
+  const dayKey = `wetter:${e.baustelle}|${e.datum}`;
+  if (e.wetter && !(await kvGet(dayKey, null))) await kvSet(dayKey, e.wetter);
+  S.entries.push(e); await DB.put("entries", e);
+  S.draft.fotos = []; S.draft.text = ""; $("#textInput").value = "";
+  await kvSet("draftText", "");
+  toast(`${nrText(e.nr)} gespeichert.`);
+  render();
+  sync(false);
+}
+async function addPhotos(files) {
+  for (const f of files) {
+    try {
+      const c = await compress(f);
+      S.draft.fotos.push({ id: uid(), blob: c.blob, w: c.w, h: c.h, url: URL.createObjectURL(c.blob) });
+    } catch (e) { toast("Foto konnte nicht gelesen werden."); }
+  }
+  renderDraftThumbs();
+}
+function vortag() {
+  const today = isoDate(new Date());
+  const prev = S.entries.filter((e) => e.baustelle === S.aktuell && e.datum < today).sort((a, b) => b.ts.localeCompare(a.ts))[0]
+    || S.entries.filter((e) => e.baustelle === S.aktuell).sort((a, b) => b.ts.localeCompare(a.ts))[0];
+  if (!prev) { toast("Für diese Baustelle gibt es noch keinen früheren Eintrag."); return; }
+  $("#textInput").value = prev.text; S.draft.kat = prev.kategorie;
+  renderChips();
+  toast(`Text von ${nrText(prev.nr)} (${deDate(prev.datum)}) übernommen. Bitte anpassen.`);
+}
+
+/* ---------- Diktat über Web Speech, falls vorhanden ---------- */
+let rec = null, recOn = false;
+function setupDictation() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+  $("#dictBtn").hidden = false;
+  $("#dictHint").textContent = "„Diktieren“ schreibt mit, bis du erneut tippst. Alternativ das Mikrofon der Tastatur nutzen.";
+  $("#dictBtn").addEventListener("click", () => {
+    if (recOn) { rec && rec.stop(); return; }
+    try {
+      rec = new SR(); rec.lang = "de-DE"; rec.continuous = true; rec.interimResults = false;
+      rec.onresult = (ev) => {
+        let s = ""; for (let i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) s += ev.results[i][0].transcript;
+        const ta = $("#textInput"); ta.value = (ta.value ? ta.value.replace(/\s*$/, " ") : "") + s.trim();
+        kvSet("draftText", ta.value);
+      };
+      rec.onend = () => { recOn = false; $("#dictBtn").textContent = "Diktieren"; };
+      rec.onerror = () => { recOn = false; $("#dictBtn").textContent = "Diktieren"; toast("Mikrofon nicht verfügbar. Nutze das Mikrofon der Tastatur."); };
+      rec.start(); recOn = true; $("#dictBtn").textContent = "Stopp";
+    } catch (e) { toast("Diktat konnte nicht starten."); }
+  });
+}
+
+/* ---------- PDF Tagesbericht ---------- */
+const blobToDataUrl = (b) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
+async function dayReport(b, datum) {
+  if (!window.jspdf) { toast("PDF-Modul nicht geladen. Einmal mit Netz öffnen."); return null; }
+  const list = S.entries.filter((e) => e.baustelle === b && e.datum === datum).sort((x, y) => x.ts.localeCompare(y.ts));
+  if (!list.length) return null;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const W = 210, H = 297, M = 18, CW = W - 2 * M;
+  let y = M;
+  const ensure = (h) => { if (y + h > H - M - 6) { doc.addPage(); y = M; } };
+  const d = parseIso(datum), kw = isoWeek(d);
+  const w = (await kvGet(`wetter:${b}|${datum}`, null)) || (list.find((e) => e.wetter) || {}).wetter;
+
+  doc.setFillColor(229, 160, 25); doc.rect(M, y, 4, 14, "F");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor(28, 32, 35);
+  doc.text("Bautagebuch – Tagesbericht", M + 8, y + 6);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(91, 98, 102);
+  doc.text(`${WTAG[d.getDay()]}, ${deDate(datum)} · KW ${kw.week}/${kw.year}`, M + 8, y + 12.5);
+  y += 22;
+  const rows = [
+    ["Baustelle", b],
+    ["Wetter", w ? `${w.temp != null ? w.temp + " °C, " : ""}${w.text || ""}${w.quelle ? " (" + w.quelle + ")" : ""}` : "nicht erfasst"],
+    ["Einträge", `${list.length} (${nrText(list[0].nr)} bis ${nrText(list[list.length - 1].nr)})`]
+  ];
+  doc.setFontSize(10);
+  rows.forEach(([k, v]) => {
+    doc.setFont("helvetica", "bold"); doc.setTextColor(91, 98, 102); doc.text(k.toUpperCase(), M, y);
+    doc.setFont("helvetica", "normal"); doc.setTextColor(28, 32, 35);
+    const lines = doc.splitTextToSize(v, CW - 32); doc.text(lines, M + 32, y); y += 5.2 * lines.length;
+  });
+  y += 2; doc.setDrawColor(28, 32, 35); doc.setLineWidth(0.6); doc.line(M, y, W - M, y); y += 8;
+
+  for (const e of list) {
+    ensure(18);
+    doc.setFont("courier", "bold"); doc.setFontSize(11); doc.setTextColor(28, 32, 35);
+    doc.text(nrText(e.nr), M, y);
+    doc.setFont("helvetica", "bold"); doc.text(`${hhmm(e.ts)} Uhr  ·  ${KAT_LABEL[e.kategorie] || e.kategorie}`, M + 26, y);
+    if (e.wetter && e.wetter.text && (!w || e.wetter.text !== w.text)) {
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(91, 98, 102);
+      doc.text(`${e.wetter.temp != null ? e.wetter.temp + " °C, " : ""}${e.wetter.text}`, W - M, y, { align: "right" });
+    }
+    y += 6;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.setTextColor(28, 32, 35);
+    for (const line of doc.splitTextToSize(e.text || "(ohne Text)", CW)) { ensure(5.5); doc.text(line, M, y); y += 5.2; }
+    if (e.bearbeitet) {
+      doc.setFontSize(8.5); doc.setTextColor(120, 126, 130);
+      const t = `Nachträglich bearbeitet am ${deDate(isoDate(new Date(e.bearbeitet)))} um ${hhmm(e.bearbeitet)} Uhr. Ursprünglicher Text: ${e.textOriginal || ""}`;
+      for (const line of doc.splitTextToSize(t, CW)) { ensure(4.5); doc.text(line, M, y); y += 4; }
+    }
+    y += 2;
+    const imgs = [];
+    for (const f of e.fotos) { const r = await getPhotoBlob(f).catch(() => null); if (r) imgs.push({ url: await blobToDataUrl(r.blob), w: r.w || f.w || 4, h: r.h || f.h || 3 }); }
+    const colW = (CW - 6) / 2;
+    for (let i = 0; i < imgs.length; i += 2) {
+      const pair = imgs.slice(i, i + 2).map((im) => { let wd = colW, ht = colW * im.h / im.w; if (ht > 100) { ht = 100; wd = ht * im.w / im.h; } return { ...im, wd, ht }; });
+      const rowH = Math.max(...pair.map((p) => p.ht));
+      ensure(rowH + 4);
+      pair.forEach((p, j) => doc.addImage(p.url, "JPEG", M + j * (colW + 6), y, p.wd, p.ht));
+      y += rowH + 5;
+    }
+    doc.setDrawColor(214, 217, 210); doc.setLineWidth(0.2); ensure(6); doc.line(M, y, W - M, y); y += 7;
+  }
+  const n = doc.getNumberOfPages(), made = new Date();
+  for (let i = 1; i <= n; i++) {
+    doc.setPage(i); doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(120, 126, 130);
+    doc.text(`${b} · Tagesbericht ${deDate(datum)}`, M, H - 10);
+    doc.text(`Erstellt ${deDate(isoDate(made))}, ${pad(made.getHours())}:${pad(made.getMinutes())} · Seite ${i} von ${n}`, W - M, H - 10, { align: "right" });
+  }
+  return doc.output("blob");
+}
+
+/* ---------- Beispieldaten ---------- */
+function demoPhoto(label, hue) {
+  const c = document.createElement("canvas"); c.width = 800; c.height = 600;
+  const g = c.getContext("2d");
+  g.fillStyle = `hsl(${hue} 12% 62%)`; g.fillRect(0, 0, 800, 600);
+  g.fillStyle = `hsl(${hue} 10% 48%)`; g.fillRect(0, 380, 800, 220);
+  g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = 6;
+  for (let x = 60; x < 800; x += 140) { g.beginPath(); g.moveTo(x, 80); g.lineTo(x, 380); g.stroke(); }
+  g.fillStyle = "rgba(20,22,24,.75)"; g.fillRect(0, 520, 800, 80);
+  g.fillStyle = "#fff"; g.font = "600 34px Barlow, Arial, sans-serif"; g.fillText("Beispielfoto · " + label, 28, 572);
+  return new Promise((r) => c.toBlob((b) => r(b), "image/jpeg", 0.8));
+}
+async function seedDemo() {
+  const now = new Date(), y1 = new Date(now); y1.setDate(now.getDate() - 1);
+  const y3 = new Date(now); y3.setDate(now.getDate() - 3);
+  const at = (d, h, m) => { const x = new Date(d); x.setHours(h, m, 0, 0); return x; };
+  const items = [
+    [y3, 7, 40, "lieferung", "Fensterelemente 1. OG geliefert (12 Stück), Sichtprüfung ohne Befund. Lieferschein abgelegt.", 6, "Bedeckt", "Lieferung", 30],
+    [y1, 8, 5, "fortschritt", "Trockenbau 2. OG Achse A–D abgeschlossen. Firma Stein mit 4 Mann vor Ort.", 4, "Leichter Regen", "Trockenbau", 200],
+    [y1, 13, 20, "behinderung", "Kran ab 11:30 außer Betrieb (Windwarnung). Betonage Decke über EG auf morgen verschoben.", 4, "Leichter Regen", null, 0],
+    [now, 7, 55, "mangel", "Riss im Estrich, Achse C/3, ca. 1,2 m lang. Firma Boden & Co. informiert, Stellungnahme angefordert.", 8, "Teilweise bewölkt", "Riss Estrich", 20],
+    [now, 10, 30, "besprechung", "Baubesprechung mit Bauherr und TGA-Planung: Schlitze Sanitär 1. OG freigegeben.", 8, "Teilweise bewölkt", null, 0]
+  ];
+  if (!S.baustellen.includes(DEMO)) S.baustellen.push(DEMO);
+  let nr = 0;
+  for (const [d, h, m, kat, text, temp, wt, foto, hue] of items) {
+    const ts = at(d, h, m), e = { id: uid(), nr: ++nr, baustelle: DEMO, ts: ts.toISOString(), datum: isoDate(ts), kategorie: kat, text, synced: false, beispiel: true, wetter: { temp, text: wt, quelle: "Beispiel" }, fotos: [] };
+    if (foto) { const blob = await demoPhoto(foto, hue); const id = uid(); await DB.put("photos", { id, blob, w: 800, h: 600 }); e.fotos.push({ id, w: 800, h: 600, path: null }); }
+    S.entries.push(e); await DB.put("entries", e);
+    await kvSet(`wetter:${DEMO}|${e.datum}`, e.wetter);
+  }
+  await kvSet("zaehler:" + DEMO, nr); await kvSet("baustellen", S.baustellen); await kvSet("seeded", true);
+  if (!S.aktuell) { S.aktuell = DEMO; await kvSet("aktuell", DEMO); }
+}
+async function removeDemo() {
+  for (const e of S.entries.filter((x) => x.beispiel)) { for (const f of e.fotos) await DB.del("photos", f.id); await DB.del("entries", e.id); }
+  S.entries = S.entries.filter((x) => !x.beispiel);
+  S.baustellen = S.baustellen.filter((b) => b !== DEMO); await kvSet("baustellen", S.baustellen);
+  if (S.aktuell === DEMO) { S.aktuell = S.baustellen[0] || ""; await kvSet("aktuell", S.aktuell); }
+  if (S.calBaustelle === DEMO) S.calBaustelle = S.aktuell;
+  toast("Beispieldaten entfernt."); render();
+}
+
+/* ---------- Darstellung ---------- */
+function currentView() { const h = location.hash.slice(1); return ["erfassen", "eintraege", "kalender", "einstellungen"].includes(h) ? h : "erfassen"; }
+function renderSyncPill() {
+  const p = $("#syncPill"), t = $("#syncText");
+  const open = S.entries.filter((e) => !e.synced && !e.beispiel).length;
+  p.className = "pill";
+  if (!DBX.connected) { t.textContent = open ? `${open} nur auf diesem Gerät` : "Nur auf diesem Gerät"; }
+  else if (S.sync.state === "running") { p.classList.add("wait"); t.textContent = "Lädt hoch …"; }
+  else if (S.sync.state === "error") { p.classList.add("err"); t.textContent = "Upload fehlgeschlagen"; }
+  else if (open) { p.classList.add("wait"); t.textContent = `${open} warten auf Upload`; }
+  else { p.classList.add("ok"); t.textContent = "In Dropbox gesichert"; }
+}
+function baustelleOptions(sel, withAll) {
+  return (withAll ? `<option value="">Alle Baustellen</option>` : "") +
+    S.baustellen.map((b) => `<option value="${esc(b)}"${b === sel ? " selected" : ""}>${esc(b)}</option>`).join("");
+}
+function renderChips() {
+  $("#katChips").innerHTML = KATS.map(([id, l]) => `<button type="button" class="chip" data-kat="${id}" aria-pressed="${S.draft.kat === id}">${l}</button>`).join("");
+}
+function renderDraftThumbs() {
+  $("#draftThumbs").innerHTML = S.draft.fotos.map((p, i) => `<div class="thumb"><img src="${p.url}" alt="Foto ${i + 1}"><button type="button" class="x" data-rm="${p.id}" aria-label="Foto ${i + 1} entfernen">×</button></div>`).join("");
+  $("#shootBtn").lastChild.textContent = S.draft.fotos.length ? "Weiteres Foto" : "Foto aufnehmen";
+}
+function renderErfassen() {
+  $("#baustelleSel").innerHTML = S.baustellen.length ? baustelleOptions(S.aktuell) : `<option value="">Noch keine Baustelle</option>`;
+  if (!S.baustellen.length) $("#neueBaustelleRow").hidden = false;
+  renderChips(); renderDraftThumbs();
+}
+function entryCard(e) {
+  const editing = S.editId === e.id, confirming = S.confirmId === e.id;
+  const kat = `<span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie] || e.kategorie)}</span>`;
+  const sync = e.beispiel ? `<span class="tag beispiel">Beispiel</span>` : e.synced ? `<span class="sync" style="color:var(--ok)">✓ Dropbox</span>` : `<span class="sync" style="color:var(--warn)">● wartet</span>`;
+  const thumbs = e.fotos.length ? `<div class="thumbs">${e.fotos.map((f, i) => `<div class="thumb"><img data-entry="${e.id}" data-photo="${f.id}" alt="Foto ${i + 1} zu ${nrText(e.nr)}"></div>`).join("")}</div>` : "";
+  const meta = [e.wetter && e.wetter.text ? `${e.wetter.temp != null ? e.wetter.temp + " °C, " : ""}${esc(e.wetter.text)}` : "", e.bearbeitet ? `bearbeitet ${deDate(isoDate(new Date(e.bearbeitet)))} ${hhmm(e.bearbeitet)}` : ""].filter(Boolean).join(" · ");
+  return `<article class="entry" data-id="${e.id}">
+    <div class="entry-head"><span class="nr">${nrText(e.nr)}</span><span>${hhmm(e.ts)}</span>${kat}${S.baustellen.length > 1 && !$("#fBaustelle").value ? `<span>${esc(e.baustelle)}</span>` : ""}${sync}</div>
+    ${editing ? `<textarea id="edit-${e.id}" aria-label="Text bearbeiten">${esc(e.text)}</textarea><div class="row"><button class="btn small" type="button" data-act="save-edit">Änderung speichern</button><button class="btn quiet small" type="button" data-act="cancel">Abbrechen</button></div><p class="hint">Der ursprüngliche Text bleibt im Bericht vermerkt.</p>`
+      : `<p class="entry-text">${esc(e.text) || "<em>ohne Text</em>"}</p>`}
+    ${thumbs}
+    ${meta ? `<p class="entry-meta">${meta}</p>` : ""}
+    ${confirming ? `<div class="confirm">Eintrag ${nrText(e.nr)} löschen? <button class="btn small danger" type="button" data-act="del-yes">Löschen</button><button class="btn quiet small" type="button" data-act="cancel">Behalten</button></div>`
+      : editing ? "" : `<div class="row"><button class="btn quiet small" type="button" data-act="edit">Bearbeiten</button>${!e.synced || e.beispiel ? `<button class="btn quiet small danger" type="button" data-act="del">Löschen</button>` : ""}</div>`}
+  </article>`;
+}
+function renderEintraege() {
+  const fb = $("#fBaustelle"), fk = $("#fKat");
+  const vb = fb.value, vk = fk.value;
+  fb.innerHTML = baustelleOptions(vb, true);
+  fk.innerHTML = `<option value="">Alle Kategorien</option>` + KATS.map(([id, l]) => `<option value="${id}"${id === vk ? " selected" : ""}>${l}</option>`).join("");
+  const q = $("#fText").value.trim().toLowerCase();
+  const list = S.entries.filter((e) => (!fb.value || e.baustelle === fb.value) && (!fk.value || e.kategorie === fk.value) &&
+    (!q || e.text.toLowerCase().includes(q) || nrText(e.nr).toLowerCase().includes(q))).sort((a, b) => b.ts.localeCompare(a.ts));
+  const box = $("#entryList");
+  if (!list.length) {
+    box.innerHTML = S.entries.length ? `<div class="empty"><strong>Keine Treffer</strong>Filter oder Suchbegriff ändern.</div>`
+      : `<div class="empty"><strong>Noch keine Einträge</strong>Unter „Erfassen“ den ersten Eintrag mit Foto und Text anlegen.</div>`;
+    return;
+  }
+  let html = "", last = "";
+  for (const e of list) {
+    if (e.datum !== last) {
+      last = e.datum; const d = parseIso(e.datum), n = list.filter((x) => x.datum === e.datum).length;
+      html += `<div class="day-head"><h2>${WTAG[d.getDay()]}, ${deDate(e.datum)}</h2><span class="mono">KW ${isoWeek(d).week} · ${n} ${n === 1 ? "Eintrag" : "Einträge"}</span></div>`;
+    }
+    html += entryCard(e);
+  }
+  box.innerHTML = html; fillThumbs(box);
+}
+function renderKalender() {
+  if (!S.calBaustelle || !S.baustellen.includes(S.calBaustelle)) S.calBaustelle = S.aktuell || S.baustellen[0] || "";
+  $("#calBaustelle").innerHTML = S.baustellen.length ? baustelleOptions(S.calBaustelle) : `<option value="">Noch keine Baustelle</option>`;
+  const m = S.calMonth, y = m.getFullYear(), mo = m.getMonth();
+  $("#calTitle").textContent = `${MONATE[mo]} ${y}`;
+  const counts = {};
+  S.entries.filter((e) => e.baustelle === S.calBaustelle).forEach((e) => { counts[e.datum] = (counts[e.datum] || 0) + 1; });
+  const firstEntry = Object.keys(counts).sort()[0];
+  const today = isoDate(new Date());
+  const start = new Date(y, mo, 1); start.setDate(1 - ((start.getDay() + 6) % 7));
+  let html = `<span></span>` + ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map((d) => `<span class="wd">${d}</span>`).join("");
+  const d = new Date(start);
+  for (let w = 0; w < 6; w++) {
+    if (w > 0 && d.getMonth() !== mo) break;
+    html += `<span class="kw" title="Kalenderwoche">${isoWeek(d).week}</span>`;
+    for (let i = 0; i < 7; i++) {
+      const iso = isoDate(d), n = counts[iso] || 0, out = d.getMonth() !== mo, we = i >= 5;
+      const gap = !n && !we && !out && firstEntry && iso >= firstEntry && iso < today;
+      const cls = ["d", out && "out", we && "weekend", iso === today && "today", iso === S.calDay && "sel", gap && "gap"].filter(Boolean).join(" ");
+      html += `<button type="button" class="${cls}" data-day="${iso}" aria-label="${deDate(iso)}${n ? ", " + n + " Einträge" : ""}">${d.getDate()}${n ? `<span class="n">${n}</span>` : gap ? `<span class="n">0</span>` : ""}</button>`;
+      d.setDate(d.getDate() + 1);
+    }
+  }
+  $("#calGrid").innerHTML = html;
+  renderDayPanel();
+}
+async function renderDayPanel() {
+  const p = $("#dayPanel"), day = S.calDay, b = S.calBaustelle;
+  const list = S.entries.filter((e) => e.baustelle === b && e.datum === day).sort((x, y) => x.ts.localeCompare(y.ts));
+  const d = parseIso(day), w = await kvGet(`wetter:${b}|${day}`, null);
+  p.innerHTML = `<div class="row"><h2 class="grow">${WTAG[d.getDay()]}, ${deDate(day)}</h2><span class="mono" style="font-size:12px;color:var(--ink-2)">KW ${isoWeek(d).week}</span></div>
+    <p class="hint">${w ? `Wetter: ${w.temp != null ? w.temp + " °C, " : ""}${esc(w.text || "")}` : "Kein Wetter gespeichert"}</p>
+    ${list.length ? `<div>${list.map((e) => `<div class="mini"><span class="mono">${nrText(e.nr)} · ${hhmm(e.ts)}</span><span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie])}</span><p>${esc(e.text.length > 90 ? e.text.slice(0, 90) + " …" : e.text)}</p></div>`).join("")}</div>
+      <button class="btn primary block" type="button" id="pdfBtn">Tagesbericht als PDF</button><div id="pdfOut"></div>`
+      : `<div class="empty"><strong>Keine Einträge an diesem Tag</strong>Wähle einen markierten Tag im Kalender.</div>`}`;
+  const btn = $("#pdfBtn");
+  if (btn) btn.addEventListener("click", async () => {
+    btn.disabled = true; btn.textContent = "PDF wird erstellt …";
+    try {
+      const blob = await dayReport(b, day);
+      if (!blob) return;
+      const name = `Tagesbericht_${safeName(b)}_${day}.pdf`;
+      let up = "";
+      if (DBX.connected && list.every((e) => !e.beispiel)) {
+        try { await DBX.upload(`/${safeName(b)}/Berichte/${name}`, blob); up = `<p class="hint" style="color:var(--ok)">In Dropbox gespeichert unter /${esc(safeName(b))}/Berichte/</p>`; }
+        catch (e) { up = `<p class="err-text">Upload in Dropbox fehlgeschlagen. Das PDF ist trotzdem erstellt.</p>`; }
+      }
+      const url = URL.createObjectURL(blob);
+      $("#pdfOut").innerHTML = `<div class="row" style="margin-top:8px"><a class="btn" href="${url}" target="_blank" rel="noopener">PDF öffnen</a><a class="btn quiet" href="${url}" download="${esc(name)}">Herunterladen</a></div>${up}
+        ${HOSTED ? "" : `<p class="hint">In dieser Vorschau sind Downloads gesperrt. In der installierten Version öffnet sich das PDF normal.</p>`}`;
+    } catch (e) { toast("PDF konnte nicht erstellt werden."); }
+    finally { btn.disabled = false; btn.textContent = "Tagesbericht als PDF"; }
+  });
+}
+function renderEinstellungen() {
+  const box = $("#dbxBox");
+  if (!HOSTED) {
+    box.innerHTML = `<p class="note">Diese Vorschau läuft in einer geschützten Umgebung ohne Zugriff auf Dropbox, Standort und Kamera-Upload ins Netz. Einträge bleiben hier nur in diesem Browser. Für Dropbox die App wie in der Anleitung auf GitHub Pages veröffentlichen.</p>`;
+  } else if (DBX.connected) {
+    box.innerHTML = `<dl class="kv"><dt>Status</dt><dd style="color:var(--ok)">Verbunden</dd><dt>Zielordner</dt><dd>Dropbox / Apps / (Name deiner Dropbox-App)</dd><dt>Offen</dt><dd>${S.entries.filter((e) => !e.synced && !e.beispiel).length} Einträge</dd></dl>
+      ${S.sync.state === "error" ? `<p class="err-text">${esc(S.sync.msg)}</p>` : ""}
+      <div class="row"><button class="btn small" type="button" id="dbxSync">Jetzt hochladen</button><button class="btn small" type="button" id="dbxImport">Einträge anderer Geräte laden</button><button class="btn quiet small danger" type="button" id="dbxOff">Trennen</button></div>`;
+  } else {
+    box.innerHTML = `<p class="hint">Einmalig in der Dropbox App Console eine App mit Zugriff „App folder“ anlegen und diese Adresse als Redirect URI eintragen:</p>
+      <div class="code" id="redirUri">${esc(DBX.redirectUri())}</div>
+      <label class="label" for="dbxKey">App key</label>
+      <div class="row"><input type="text" id="dbxKey" class="grow" value="${esc(DBX.key)}" placeholder="z. B. a1b2c3d4e5f6g7h" autocomplete="off" spellcheck="false"><button class="btn small" type="button" id="dbxConnect">Verbinden</button></div>
+      <p class="err-text" id="dbxErr" hidden></p>`;
+  }
+  $("#baustellenList").innerHTML = S.baustellen.length ? S.baustellen.map((b) => {
+    const n = S.entries.filter((e) => e.baustelle === b).length;
+    return `<div class="mini"><p class="grow">${esc(b)}</p><span class="mono">${n} ${n === 1 ? "Eintrag" : "Einträge"}</span></div>`;
+  }).join("") : `<p class="hint">Noch keine Baustelle. Neue Baustellen legst du unter „Erfassen“ an.</p>`;
+  $("#autoWetter").checked = S.autoWetter;
+  const demo = S.entries.some((e) => e.beispiel);
+  $("#removeDemoBtn").hidden = !demo;
+  $("#dataInfo").innerHTML = `<dt>Einträge</dt><dd>${S.entries.filter((e) => !e.beispiel).length}${demo ? " (plus Beispiele)" : ""}</dd>
+    <dt>Speicher</dt><dd>${DB.persistent ? "Im Browser dieses Geräts" : "Nur bis zum Schließen der Seite"}</dd>
+    <dt>Fotos</dt><dd>auf max. 1600 px verkleinert, JPEG</dd>`;
+}
+function render() {
+  const v = currentView();
+  document.querySelectorAll(".view[id^='v-']").forEach((s) => { s.hidden = s.id !== "v-" + v; });
+  document.querySelectorAll(".nav a").forEach((a) => { if (a.dataset.view === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+  const now = new Date();
+  $("#stamp").textContent = `KW ${isoWeek(now).week} · ${WTAG[now.getDay()].slice(0, 2)} ${pad(now.getDate())}.${pad(now.getMonth() + 1)}.`;
+  const demo = S.entries.some((e) => e.beispiel);
+  $("#demoBanner1").hidden = !demo; $("#demoBanner2").hidden = !demo;
+  renderSyncPill();
+  if (v === "erfassen") renderErfassen();
+  if (v === "eintraege") renderEintraege();
+  if (v === "kalender") renderKalender();
+  if (v === "einstellungen") renderEinstellungen();
+}
+
+/* ---------- Ereignisse ---------- */
+function bind() {
+  window.addEventListener("hashchange", () => { S.editId = null; S.confirmId = null; render(); window.scrollTo(0, 0); });
+  window.addEventListener("online", () => sync(false));
+  $("#syncPill").addEventListener("click", () => { if (DBX.connected) sync(true); else location.hash = "einstellungen"; });
+
+  $("#baustelleSel").addEventListener("change", async (e) => { S.aktuell = e.target.value; await kvSet("aktuell", S.aktuell); });
+  $("#neueBaustelleBtn").addEventListener("click", () => { const r = $("#neueBaustelleRow"); r.hidden = !r.hidden; if (!r.hidden) $("#neueBaustelleInput").focus(); });
+  const addB = async () => {
+    const v = $("#neueBaustelleInput").value.trim(), err = $("#baustelleErr");
+    err.hidden = true;
+    if (!v) { err.textContent = "Gib einen Namen für die Baustelle ein."; err.hidden = false; return; }
+    if (S.baustellen.includes(v)) { err.textContent = "Diese Baustelle gibt es schon."; err.hidden = false; return; }
+    S.baustellen.push(v); S.aktuell = v; await kvSet("baustellen", S.baustellen); await kvSet("aktuell", v);
+    $("#neueBaustelleInput").value = ""; $("#neueBaustelleRow").hidden = true; toast(`Baustelle „${v}“ angelegt.`); render();
+  };
+  $("#neueBaustelleOk").addEventListener("click", addB);
+  $("#neueBaustelleInput").addEventListener("keydown", (e) => { if (e.key === "Enter") addB(); });
+  $("#neueBaustelleInput").addEventListener("input", () => { $("#baustelleErr").hidden = true; });
+
+  $("#katChips").addEventListener("click", (e) => { const b = e.target.closest("[data-kat]"); if (!b) return; S.draft.kat = b.dataset.kat; renderChips(); });
+  $("#shootBtn").addEventListener("click", () => $("#camInput").click());
+  $("#libBtn").addEventListener("click", () => $("#libInput").click());
+  $("#camInput").addEventListener("change", (e) => { addPhotos([...e.target.files]); e.target.value = ""; });
+  $("#libInput").addEventListener("change", (e) => { addPhotos([...e.target.files]); e.target.value = ""; });
+  $("#draftThumbs").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-rm]"); if (!b) return;
+    S.draft.fotos = S.draft.fotos.filter((p) => p.id !== b.dataset.rm); renderDraftThumbs();
+  });
+  $("#textInput").addEventListener("input", (e) => { $("#saveErr").hidden = true; kvSet("draftText", e.target.value); });
+  $("#vortagBtn").addEventListener("click", vortag);
+  $("#saveBtn").addEventListener("click", async () => { const b = $("#saveBtn"); b.disabled = true; try { await saveEntry(); } finally { b.disabled = false; } });
+
+  ["#fBaustelle", "#fKat"].forEach((s) => $(s).addEventListener("change", renderEintraege));
+  $("#fText").addEventListener("input", renderEintraege);
+  $("#entryList").addEventListener("click", async (ev) => {
+    const btn = ev.target.closest("[data-act]"); if (!btn) return;
+    const id = btn.closest(".entry").dataset.id, e = S.entries.find((x) => x.id === id), act = btn.dataset.act;
+    if (act === "edit") { S.editId = id; S.confirmId = null; }
+    if (act === "cancel") { S.editId = null; S.confirmId = null; }
+    if (act === "del") { S.confirmId = id; S.editId = null; }
+    if (act === "del-yes") {
+      for (const f of e.fotos) await DB.del("photos", f.id);
+      await DB.del("entries", id); S.entries = S.entries.filter((x) => x.id !== id); S.confirmId = null; toast(`${nrText(e.nr)} gelöscht.`);
+    }
+    if (act === "save-edit") {
+      const t = $("#edit-" + id).value.trim();
+      if (t !== e.text) { if (!e.textOriginal) e.textOriginal = e.text; e.text = t; e.bearbeitet = new Date().toISOString(); e.synced = false; await DB.put("entries", e); toast(`${nrText(e.nr)} geändert.`); sync(false); }
+      S.editId = null;
+    }
+    renderEintraege(); renderSyncPill();
+  });
+
+  $("#calBaustelle").addEventListener("change", (e) => { S.calBaustelle = e.target.value; renderKalender(); });
+  $("#calPrev").addEventListener("click", () => { S.calMonth = new Date(S.calMonth.getFullYear(), S.calMonth.getMonth() - 1, 1); renderKalender(); });
+  $("#calNext").addEventListener("click", () => { S.calMonth = new Date(S.calMonth.getFullYear(), S.calMonth.getMonth() + 1, 1); renderKalender(); });
+  $("#calGrid").addEventListener("click", (e) => { const b = e.target.closest("[data-day]"); if (!b) return; S.calDay = b.dataset.day; renderKalender(); });
+
+  $("#autoWetter").addEventListener("change", async (e) => { S.autoWetter = e.target.checked; await kvSet("autoWetter", S.autoWetter); });
+  document.addEventListener("click", (e) => { if (e.target.closest("[data-remove-demo]")) removeDemo(); });
+  $("#dbxBox").addEventListener("click", async (e) => {
+    const t = e.target.closest("button"); if (!t) return;
+    if (t.id === "dbxConnect") {
+      const k = $("#dbxKey").value.trim();
+      if (!k) { const er = $("#dbxErr"); er.textContent = "Trage den App key aus der Dropbox App Console ein."; er.hidden = false; return; }
+      DBX.key = k; await kvSet("dbx:key", k); DBX.connect();
+    }
+    if (t.id === "dbxSync") sync(true);
+    if (t.id === "dbxImport") importRemote(true);
+    if (t.id === "dbxOff") { await DBX.disconnect(); toast("Dropbox getrennt."); render(); }
+  });
+  $("#dbxBox").addEventListener("input", (e) => { if (e.target.id === "dbxKey") $("#dbxErr").hidden = true; });
+}
+
+/* ---------- Start ---------- */
+(async function start() {
+  await DB.open();
+  S.entries = await DB.all("entries");
+  S.baustellen = await kvGet("baustellen", []);
+  S.aktuell = await kvGet("aktuell", "");
+  S.autoWetter = await kvGet("autoWetter", true);
+  if (!(await kvGet("seeded", false)) && !S.entries.length) await seedDemo();
+  if (S.aktuell && !S.baustellen.includes(S.aktuell)) S.aktuell = S.baustellen[0] || "";
+  const now = new Date(); S.calMonth = new Date(now.getFullYear(), now.getMonth(), 1); S.calDay = isoDate(now);
+  $("#textInput").value = await kvGet("draftText", "");
+  await DBX.init();
+  bind(); setupDictation(); render();
+  if (S.autoWetter) loadWeather(false);
+  if ("serviceWorker" in navigator && HOSTED) navigator.serviceWorker.register("sw.js").catch(() => {});
+  if (DBX.connected) { await sync(false); importRemote(false); }
+})();
+</script>
+</body>
+</html>

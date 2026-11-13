@@ -19,96 +19,66 @@
 <style>
 /* Layout: Telefon = eine Spalte mit Leiste unten; ab 900px = Navigationsleiste links, Inhalt mittig */
 :root {
-  --paper: #eff0ec;
-  --panel: #ffffff;
-  --sunk: #e4e6e0;
-  --ink: #1c2023;
-  --ink-2: #5b6266;
-  --ink-3: #8a9094;
-  --line: #d6d9d2;
-  --accent: #e5a019;
-  --accent-ink: #1c2023;
-  --accent-text: #845500;
-  --accent-soft: #f8e7c2;
-  --danger: #b03a2e;
-  --danger-soft: #f6dcd8;
-  --warn: #8c6200;
-  --warn-soft: #f3e6c4;
-  --ok: #2f6b45;
-  --ok-soft: #dbeadf;
+  --paper: #eff0ec; --panel: #ffffff; --sunk: #e4e6e0; --ink: #1c2023; --ink-2: #5b6266; --ink-3: #8a9094; --line: #d6d9d2;
+  --accent: #e5a019; --accent-ink: #1c2023; --accent-text: #845500; --accent-soft: #f8e7c2;
+  --danger: #b03a2e; --danger-soft: #f6dcd8; --warn: #8c6200; --warn-soft: #f3e6c4; --ok: #2f6b45; --ok-soft: #dbeadf;
+  --pin: #d23c2a; --scrim: rgba(20, 22, 24, .55);
   --f-display: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --f-body: "Barlow", "Helvetica Neue", Arial, system-ui, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --r: 6px;
-  --nav-h: 64px;
+  --r: 6px; --nav-h: 64px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #141719; --panel: #1d2124; --sunk: #262b2e; --ink: #e8ebe6; --ink-2: #a5aca8; --ink-3: #7b8380;
-    --line: #343a3d; --accent: #f0b13a; --accent-ink: #1c2023; --accent-text: #f0b13a; --accent-soft: #3a3020;
+    --paper: #141719; --panel: #1d2124; --sunk: #262b2e; --ink: #e8ebe6; --ink-2: #a5aca8; --ink-3: #7b8380; --line: #343a3d;
+    --accent: #f0b13a; --accent-ink: #1c2023; --accent-text: #f0b13a; --accent-soft: #3a3020;
     --danger: #ec8a7e; --danger-soft: #3c2422; --warn: #e8c069; --warn-soft: #3a3120; --ok: #8ccaa0; --ok-soft: #1f3327;
-    color-scheme: dark;
+    --pin: #ff6a55; --scrim: rgba(0, 0, 0, .65); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #141719; --panel: #1d2124; --sunk: #262b2e; --ink: #e8ebe6; --ink-2: #a5aca8; --ink-3: #7b8380;
-  --line: #343a3d; --accent: #f0b13a; --accent-ink: #1c2023; --accent-text: #f0b13a; --accent-soft: #3a3020;
+  --paper: #141719; --panel: #1d2124; --sunk: #262b2e; --ink: #e8ebe6; --ink-2: #a5aca8; --ink-3: #7b8380; --line: #343a3d;
+  --accent: #f0b13a; --accent-ink: #1c2023; --accent-text: #f0b13a; --accent-soft: #3a3020;
   --danger: #ec8a7e; --danger-soft: #3c2422; --warn: #e8c069; --warn-soft: #3a3120; --ok: #8ccaa0; --ok-soft: #1f3327;
-  color-scheme: dark;
+  --pin: #ff6a55; --scrim: rgba(0, 0, 0, .65); color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 [hidden] { display: none !important; }
 img { max-width: 100%; }
-body {
-  background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5;
-  -webkit-text-size-adjust: 100%;
-}
+body { background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--panel); }
+body.locked { overflow: hidden; }
 h1, h2, h3 { font-family: var(--f-display); font-weight: 600; margin: 0; line-height: 1.15; text-wrap: balance; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+a { color: var(--accent-text); }
 
-/* Kopfzeile */
-.top {
-  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--panel);
-  border-bottom: 1px solid var(--line);
-  padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-}
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--panel); border-bottom: 1px solid var(--line);
+  padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .top-inner { max-width: 980px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex: 1; }
 .brand h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.01em; }
 .brand .stamp { font-family: var(--f-mono); font-size: 12px; color: var(--ink-2); white-space: nowrap; }
-.pill {
-  display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 4px 10px; border-radius: 999px;
-  background: var(--sunk); color: var(--ink-2); white-space: nowrap; border: 0;
-}
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--sunk); color: var(--ink-2); white-space: nowrap; border: 0; }
 .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
 .pill.ok { background: var(--ok-soft); color: var(--ok); } .pill.ok .dot { background: var(--ok); }
 .pill.wait { background: var(--warn-soft); color: var(--warn); } .pill.wait .dot { background: var(--warn); }
 .pill.err { background: var(--danger-soft); color: var(--danger); } .pill.err .dot { background: var(--danger); }
 
-/* Rahmen */
 .shell { max-width: 980px; margin: 0 auto; }
-main {
-  padding-block: 16px calc(var(--nav-h) + 32px + env(safe-area-inset-bottom, 0px));
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-}
+main { padding-block: 16px calc(var(--nav-h) + 32px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .view { display: flex; flex-direction: column; gap: 16px; max-width: 680px; margin: 0 auto; }
-.nav {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--panel); border-top: 1px solid var(--line);
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
-}
-.nav a {
-  height: var(--nav-h); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  text-decoration: none; color: var(--ink-2); font-family: var(--f-display); font-size: 13px; font-weight: 600; letter-spacing: 0.02em;
-  border-top: 3px solid transparent;
-}
+.stack { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--panel); border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(5, 1fr); padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.nav a { height: var(--nav-h); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0;
+  text-decoration: none; color: var(--ink-2); font-family: var(--f-display); font-size: 12.5px; font-weight: 600; border-top: 3px solid transparent; }
 .nav a svg { width: 22px; height: 22px; }
 .nav a[aria-current="page"] { color: var(--ink); border-top-color: var(--accent); }
 @media (min-width: 900px) {
@@ -119,19 +89,17 @@ main {
   main { padding-left: 0; padding-right: 0; padding-bottom: 48px; }
 }
 
-/* Bausteine */
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .label { font-family: var(--f-display); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .grow { flex: 1; min-width: 0; }
-select, input[type="text"], input[type="number"], input[type="search"], textarea {
-  width: 100%; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; min-height: 44px;
-}
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (max-width: 420px) { .two.wrap { grid-template-columns: 1fr; } }
+select, input[type="text"], input[type="number"], input[type="search"], input[type="tel"], input[type="email"], input[type="password"], textarea {
+  width: 100%; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; min-height: 44px; }
 textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px;
-  border-radius: var(--r); border: 1px solid var(--line); background: var(--panel); font-weight: 500; text-decoration: none; color: var(--ink);
-}
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px;
+  border-radius: var(--r); border: 1px solid var(--line); background: var(--panel); font-weight: 500; text-decoration: none; color: var(--ink); }
 .btn:hover { background: var(--sunk); }
 .btn svg { width: 20px; height: 20px; flex: none; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-family: var(--f-display); font-size: 18px; font-weight: 700; letter-spacing: 0.02em; }
@@ -141,69 +109,68 @@ textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
 .btn.danger { color: var(--danger); }
 .btn.small { min-height: 34px; padding: 0 12px; font-size: 14px; }
 .btn.block { width: 100%; }
+.btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--panel); }
+.btn:disabled { opacity: .6; cursor: progress; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip {
-  border: 1px solid var(--line); background: var(--panel); border-radius: 4px; padding: 7px 12px; min-height: 38px;
-  font-family: var(--f-display); font-weight: 600; font-size: 15px; letter-spacing: 0.02em; color: var(--ink-2);
-}
+.chip { border: 1px solid var(--line); background: var(--panel); border-radius: 4px; padding: 7px 12px; min-height: 38px;
+  font-family: var(--f-display); font-weight: 600; font-size: 15px; letter-spacing: 0.02em; color: var(--ink-2); }
 .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--panel); }
-.tag {
-  display: inline-block; font-family: var(--f-display); font-weight: 600; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
-  padding: 2px 8px; border-radius: 3px; background: var(--sunk); color: var(--ink-2); white-space: nowrap;
-}
+.tag { display: inline-block; font-family: var(--f-display); font-weight: 600; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 3px; background: var(--sunk); color: var(--ink-2); white-space: nowrap; border: 0; }
 .tag.mangel { background: var(--danger-soft); color: var(--danger); }
 .tag.behinderung { background: var(--warn-soft); color: var(--warn); }
 .tag.beispiel { background: transparent; border: 1px dashed var(--ink-3); color: var(--ink-3); }
+.tag.ki { background: var(--accent-soft); color: var(--accent-text); }
+button.tag { cursor: pointer; }
 .hint { font-size: 14px; color: var(--ink-2); margin: 0; }
 .note { font-size: 14px; color: var(--warn); background: var(--warn-soft); border-radius: var(--r); padding: 10px 12px; margin: 0; }
 .err-text { font-size: 14px; color: var(--danger); margin: 0; }
+details.opt { border-top: 1px solid var(--line); padding-top: 4px; }
+details.opt > summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 40px; font-family: var(--f-display); font-weight: 600; font-size: 15px; color: var(--ink-2); }
+details.opt > summary::-webkit-details-marker { display: none; }
+details.opt > summary::before { content: "+"; display: inline-grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--line); border-radius: 4px; font-family: var(--f-mono); }
+details.opt[open] > summary::before { content: "−"; }
+details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bottom: 4px; }
 
-/* Fotos */
 .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
 .thumb { position: relative; aspect-ratio: 1; max-width: 100%; border-radius: 4px; overflow: hidden; background: var(--sunk); }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.thumb .x {
-  position: absolute; top: 4px; right: 4px; width: 28px; height: 28px; border-radius: 50%; border: 0;
-  background: rgba(20,22,24,.72); color: #fff; display: grid; place-items: center; font-size: 16px; line-height: 1;
-}
-.shoot {
-  border: 1.5px dashed var(--ink-3); border-radius: var(--r); background: var(--paper); min-height: 96px;
-  display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--ink-2); font-family: var(--f-display); font-weight: 600; font-size: 18px; width: 100%;
-}
+.thumb .x { position: absolute; top: 4px; right: 4px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(20,22,24,.72); color: #fff; display: grid; place-items: center; font-size: 16px; line-height: 1; }
+.shoot { border: 1.5px dashed var(--ink-3); border-radius: var(--r); background: var(--paper); min-height: 96px; display: flex; align-items: center; justify-content: center; gap: 10px;
+  color: var(--ink-2); font-family: var(--f-display); font-weight: 600; font-size: 18px; width: 100%; }
 .shoot svg { width: 28px; height: 28px; }
-
-/* Wetter */
 .weather { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px; }
-.weather .unit { position: relative; }
-.weather .unit span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
+.unit { position: relative; }
+.unit span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
+.raw { background: var(--paper); border: 1px dashed var(--line); border-radius: var(--r); padding: 10px 12px; font-size: 14px; color: var(--ink-2); display: flex; flex-direction: column; gap: 6px; }
+.raw p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.prow { display: grid; grid-template-columns: minmax(0, 1fr) 84px 40px; gap: 6px; align-items: center; }
+.pinbox { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pinbox .where { font-family: var(--f-mono); font-size: 14px; }
+.dotpin { width: 14px; height: 14px; border-radius: 50%; background: var(--pin); box-shadow: 0 0 0 3px var(--panel), 0 0 0 4px var(--pin); flex: none; }
 
-/* Einträge */
 .day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding-top: 8px; border-bottom: 2px solid var(--ink); padding-bottom: 4px; }
 .day-head h2 { font-size: 19px; }
 .day-head .mono { font-size: 12px; color: var(--ink-2); }
 .entry { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.entry-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 14px; color: var(--ink-2); }
+.entry-head { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; font-size: 14px; color: var(--ink-2); }
 .entry-head .nr { font-family: var(--f-mono); font-weight: 500; color: var(--ink); font-size: 14px; }
 .entry-head .sync { margin-left: auto; font-size: 12px; }
 .entry-text { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
-.entry-meta { font-size: 13px; color: var(--ink-3); margin: 0; }
+.entry-meta { font-size: 13px; color: var(--ink-3); margin: 0; overflow-wrap: anywhere; }
 .entry .thumbs { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
 .confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--danger-soft); color: var(--danger); padding: 8px 10px; border-radius: var(--r); font-size: 14px; }
 .filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .filters .full { grid-column: 1 / -1; }
-.empty { text-align: center; padding: 32px 16px; color: var(--ink-2); border: 1.5px dashed var(--line); border-radius: var(--r); }
+.empty { text-align: center; padding: 28px 16px; color: var(--ink-2); border: 1.5px dashed var(--line); border-radius: var(--r); }
 .empty strong { display: block; font-family: var(--f-display); font-size: 20px; color: var(--ink); margin-bottom: 4px; }
 
-/* Kalender */
 .cal-head { display: flex; align-items: center; gap: 8px; }
 .cal-head h2 { flex: 1; font-size: 22px; text-align: center; }
 .cal { display: grid; grid-template-columns: 34px repeat(7, minmax(0, 1fr)); gap: 3px; }
 .cal .wd { font-family: var(--f-display); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); text-align: center; padding: 4px 0; }
 .cal .kw { font-family: var(--f-mono); font-size: 11px; color: var(--ink-3); display: flex; align-items: center; justify-content: center; }
-.cal .d {
-  aspect-ratio: 1; min-height: 40px; border: 1px solid var(--line); background: var(--panel); border-radius: 4px; padding: 4px;
-  display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; font-family: var(--f-mono); font-size: 13px;
-}
+.cal .d { aspect-ratio: 1; min-height: 40px; border: 1px solid var(--line); background: var(--panel); border-radius: 4px; padding: 4px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; font-family: var(--f-mono); font-size: 13px; }
 .cal .d.out { background: transparent; border-color: transparent; color: var(--ink-3); }
 .cal .d.weekend { background: var(--paper); }
 .cal .d.today { border-color: var(--ink); border-width: 2px; }
@@ -217,20 +184,60 @@ textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
 .mini .mono { font-size: 13px; color: var(--ink-2); flex: none; }
 .mini p { margin: 0; min-width: 0; overflow-wrap: anywhere; flex: 1 1 100%; }
 .mini p.grow { flex: 1 1 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.seg button { border: 0; background: var(--panel); padding: 8px 14px; font-family: var(--f-display); font-weight: 600; color: var(--ink-2); min-height: 38px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.checks { display: flex; flex-direction: column; gap: 6px; }
+.switch { display: flex; align-items: center; gap: 12px; font-size: 15px; }
+.switch input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+.sigs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.sig { border: 1px solid var(--line); border-radius: var(--r); padding: 8px; display: flex; flex-direction: column; gap: 4px; background: var(--paper); }
+.sig img { height: 56px; object-fit: contain; background: #fff; border-radius: 4px; }
+.sig span { font-size: 13px; color: var(--ink-2); }
 
-/* Einstellungen */
 .kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 16px; font-size: 14px; margin: 0; }
 .kv dt { color: var(--ink-2); } .kv dd { margin: 0; overflow-wrap: anywhere; }
 .code { font-family: var(--f-mono); font-size: 13px; background: var(--sunk); padding: 8px 10px; border-radius: 4px; overflow-x: auto; white-space: nowrap; }
-.switch { display: flex; align-items: center; gap: 12px; }
-.switch input { width: 22px; height: 22px; accent-color: var(--accent); }
+.blist { display: flex; flex-direction: column; gap: 8px; }
+.bitem { display: flex; align-items: center; gap: 12px; text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; width: 100%; min-width: 0; }
+.bitem:hover { border-color: var(--ink-3); }
+.bitem .nm { font-family: var(--f-display); font-weight: 600; font-size: 18px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.bitem .mono { font-size: 12px; color: var(--ink-2); text-align: right; }
+.plan-row, .contact { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.plan-row:last-child, .contact:last-child { border-bottom: 0; }
+.plan-row .pthumb { width: 72px; height: 56px; flex: none; border-radius: 4px; background: var(--sunk); overflow: hidden; border: 1px solid var(--line); }
+.plan-row .pthumb img { width: 100%; height: 100%; object-fit: cover; }
+.plan-row .info, .contact .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.contact { flex-wrap: wrap; } .contact .info { flex: 1 1 240px; }
+.plan-row .floor { font-family: var(--f-display); font-weight: 700; font-size: 18px; }
+.contact .firm { font-weight: 600; overflow-wrap: anywhere; }
+.contact .sub { font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
+.contact a { overflow-wrap: anywhere; }
+.form { display: flex; flex-direction: column; gap: 8px; background: var(--paper); border-radius: var(--r); padding: 12px; border: 1px solid var(--line); }
+.form input { background: var(--panel); }
 
-.toast {
-  position: fixed; left: 50%; transform: translateX(-50%); z-index: 40;
-  bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom, 0px));
-  background: var(--ink); color: var(--panel); padding: 10px 16px; border-radius: var(--r); font-size: 15px;
-  max-width: min(92vw, 520px); box-shadow: 0 6px 24px rgba(0,0,0,.18);
-}
+.sheet { position: fixed; inset: 0; z-index: 50; background: var(--panel); display: flex; flex-direction: column;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+@media (min-width: 900px) { .sheet { inset: 4vh 8vw; border-radius: 10px; box-shadow: 0 0 0 100vmax var(--scrim); } }
+.sheet-head, .sheet-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.sheet-head { border-bottom: 1px solid var(--line); }
+.sheet-head h2 { flex: 1; font-size: 20px; min-width: 0; }
+.sheet-foot { border-top: 1px solid var(--line); }
+.sheet-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-block: 8px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.plan-scroll { flex: 1; overflow: auto; background: var(--sunk); -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y; }
+.plan-wrap { position: relative; width: 100%; margin: 0 auto; cursor: crosshair; }
+.plan-wrap img { display: block; width: 100%; height: auto; max-width: none; user-select: none; -webkit-user-drag: none; background: #fff; }
+.plan-pin { position: absolute; width: 0; height: 0; }
+.plan-pin span { position: absolute; left: -13px; top: -13px; width: 26px; height: 26px; border-radius: 50%; background: var(--pin); color: #fff; border: 2px solid #fff;
+  display: grid; place-items: center; font-family: var(--f-mono); font-size: 10px; font-weight: 500; box-shadow: 0 1px 4px rgba(0,0,0,.35); cursor: pointer; padding: 0; }
+.plan-pin.new span { background: var(--accent); color: var(--accent-ink); width: 30px; height: 30px; left: -15px; top: -15px; }
+.plan-pin.sel span { outline: 3px solid var(--accent); }
+.sig-pad { flex: 1; display: flex; flex-direction: column; gap: 10px; padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); overflow: auto; }
+.sig-pad canvas { width: 100%; height: 220px; background: #fff; border: 1px solid var(--line); border-radius: var(--r); touch-action: none; }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); z-index: 60; bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom, 0px));
+  background: var(--ink); color: var(--panel); padding: 10px 16px; border-radius: var(--r); font-size: 15px; max-width: min(92vw, 520px); box-shadow: 0 6px 24px rgba(0,0,0,.18); }
 @media (min-width: 900px) { .toast { bottom: 24px; } }
 .banner { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; border: 1px dashed var(--ink-3); border-radius: var(--r); padding: 10px 12px; font-size: 14px; color: var(--ink-2); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -249,7 +256,8 @@ textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
     <a href="#erfassen" data-view="erfassen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Erfassen</a>
     <a href="#eintraege" data-view="eintraege"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Einträge</a>
     <a href="#kalender" data-view="kalender"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5"/></svg>Kalender</a>
-    <a href="#einstellungen" data-view="einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Einstellungen</a>
+    <a href="#baustellen" data-view="baustellen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 20h18M5 20V9l7-5 7 5v11"/><path d="M9 20v-6h6v6"/></svg>Baustellen</a>
+    <a href="#optionen" data-view="optionen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Optionen</a>
   </nav>
 
   <main>
@@ -276,20 +284,46 @@ textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
       <div class="card">
         <span class="label">Fotos</span>
         <div class="thumbs" id="draftThumbs"></div>
-        <button class="shoot" type="button" id="shootBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Foto aufnehmen</button>
+        <button class="shoot" type="button" id="shootBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span id="shootLabel">Foto aufnehmen</span></button>
         <button class="btn quiet small" type="button" id="libBtn">Aus der Mediathek wählen</button>
         <input type="file" id="camInput" accept="image/*" capture="environment" hidden>
         <input type="file" id="libInput" accept="image/*" multiple hidden>
       </div>
 
       <div class="card">
+        <label class="label" for="textInput">Beschreibung</label>
         <div class="row">
-          <label class="label grow" for="textInput">Beschreibung</label>
           <button class="btn small" type="button" id="dictBtn" hidden>Diktieren</button>
-          <button class="btn quiet small" type="button" id="vortagBtn">Vom Vortag übernehmen</button>
+          <button class="btn small" type="button" id="kiBtn" hidden>Mit KI strukturieren</button>
+          <button class="btn quiet small" type="button" id="vortagBtn">Vom Vortag</button>
         </div>
         <textarea id="textInput" placeholder="Trockenbau 2. OG abgeschlossen, Firma Stein mit 4 Mann vor Ort. Estrich Achse C zeigt Riss, ca. 1,2 m."></textarea>
+        <div class="raw" id="rawBox" hidden>
+          <div class="row"><span class="label grow">Originaltext (Diktat)</span><button class="btn quiet small" type="button" id="rawRestore">Wiederherstellen</button></div>
+          <p id="rawText"></p>
+        </div>
+        <div class="two wrap">
+          <input type="text" id="gewerkInput" placeholder="Gewerk, z. B. Trockenbau" aria-label="Gewerk">
+          <input type="text" id="ortInput" placeholder="Ort im Bau, z. B. 2. OG, Achse C/3" aria-label="Ort im Bau">
+        </div>
         <p class="hint" id="dictHint">Zum Diktieren auf der iPhone-Tastatur das Mikrofon antippen.</p>
+        <p class="err-text" id="kiErr" hidden></p>
+      </div>
+
+      <div class="card" id="pinCard" hidden>
+        <div class="row"><span class="label grow">Lage im Plan</span></div>
+        <div class="pinbox" id="pinBox"></div>
+      </div>
+
+      <div class="card" id="personalCard" hidden>
+        <details class="opt" id="personalDetails">
+          <summary>Personal und Firmen vor Ort <span class="hint" id="personalSum"></span></summary>
+          <div>
+            <div class="stack" id="personalRows"></div>
+            <datalist id="firmenListe"></datalist>
+            <div class="row"><button class="btn small" type="button" id="addPersonal">Firma hinzufügen</button><span class="hint">Firmen hinterlegst du unter Baustellen.</span></div>
+          </div>
+        </details>
       </div>
 
       <div class="card">
@@ -307,18 +341,19 @@ textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
 
     <!-- Einträge -->
     <section class="view" id="v-eintraege" hidden>
-      <div class="banner" id="demoBanner1" hidden><span>Die Baustelle „Beispiel“ enthält Beispieldaten zum Ausprobieren.</span><button class="btn small" type="button" data-remove-demo>Beispieldaten entfernen</button></div>
+      <div class="banner" data-demo-banner hidden><span>Die Baustelle „Beispiel“ enthält Beispieldaten zum Ausprobieren.</span><button class="btn small" type="button" data-remove-demo>Beispieldaten entfernen</button></div>
       <div class="filters">
         <select id="fBaustelle" aria-label="Baustelle filtern"></select>
         <select id="fKat" aria-label="Kategorie filtern"></select>
-        <input type="search" id="fText" class="full" placeholder="Text oder Nummer suchen, z. B. Estrich oder BT-0012" aria-label="Suchen">
+        <input type="search" id="fText" class="full" placeholder="Text, Firma oder Nummer suchen, z. B. Estrich oder BT-0012" aria-label="Suchen">
       </div>
-      <div id="entryList" class="view" style="gap:10px"></div>
+      <button class="btn" type="button" id="planViewBtn" hidden>Pläne mit Pins anzeigen</button>
+      <div id="entryList" class="stack"></div>
     </section>
 
     <!-- Kalender -->
     <section class="view" id="v-kalender" hidden>
-      <div class="banner" id="demoBanner2" hidden><span>Die Baustelle „Beispiel“ enthält Beispieldaten zum Ausprobieren.</span><button class="btn small" type="button" data-remove-demo>Beispieldaten entfernen</button></div>
+      <div class="banner" data-demo-banner hidden><span>Die Baustelle „Beispiel“ enthält Beispieldaten zum Ausprobieren.</span><button class="btn small" type="button" data-remove-demo>Beispieldaten entfernen</button></div>
       <select id="calBaustelle" aria-label="Baustelle für Kalender"></select>
       <div class="card">
         <div class="cal-head">
@@ -332,44 +367,85 @@ textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
       <div class="card" id="dayPanel"></div>
     </section>
 
-    <!-- Einstellungen -->
-    <section class="view" id="v-einstellungen" hidden>
+    <!-- Baustellen -->
+    <section class="view" id="v-baustellen" hidden>
+      <div id="bView" class="view" style="max-width:none"></div>
+    </section>
+
+    <!-- Optionen -->
+    <section class="view" id="v-optionen" hidden>
+      <div class="card"><h2>Dropbox</h2><div id="dbxBox" class="stack"></div></div>
       <div class="card">
-        <h2>Dropbox</h2>
-        <div id="dbxBox"></div>
+        <h2>KI-Strukturierung (Gemini)</h2>
+        <p class="hint">Formt dein Diktat in einen sachlichen Eintrag um und erkennt Kategorie, Gewerk, Ort und Personal. Der Originaltext bleibt immer gespeichert.</p>
+        <label class="label" for="kiKey">Gemini API-Schlüssel</label>
+        <input type="password" id="kiKey" placeholder="AIza…" autocomplete="off" spellcheck="false">
+        <label class="label" for="kiModel">Modell</label>
+        <input type="text" id="kiModel" placeholder="gemini-2.5-flash" autocomplete="off" spellcheck="false">
+        <div class="row"><button class="btn small" type="button" id="kiSave">Speichern</button><button class="btn quiet small danger" type="button" id="kiClear">Schlüssel löschen</button></div>
+        <p class="hint">Schlüssel kostenlos in Google AI Studio erstellen. Er bleibt nur auf diesem Gerät. Im kostenlosen Tarif darf Google Eingaben zur Produktverbesserung nutzen, also keine vertraulichen Projektdetails diktieren.</p>
       </div>
       <div class="card">
-        <h2>Baustellen</h2>
-        <div id="baustellenList"></div>
-      </div>
-      <div class="card">
-        <h2>Erfassung</h2>
-        <label class="switch"><input type="checkbox" id="autoWetter"> Wetter beim Öffnen automatisch per Standort abrufen</label>
-        <p class="hint">Das Wetter wird pro Tag und Baustelle gespeichert. Ein Tagesbericht, den du erst später erstellst, nutzt trotzdem das Wetter des richtigen Tages.</p>
+        <h2>Zusatzfunktionen</h2>
+        <div class="checks">
+          <label class="switch"><input type="checkbox" id="optPersonal"> Personal und Firmen erfassen</label>
+          <label class="switch"><input type="checkbox" id="optPlaene"> Pläne und Pins nutzen</label>
+          <label class="switch"><input type="checkbox" id="optSig"> Unterschriften in Berichten</label>
+          <label class="switch"><input type="checkbox" id="autoWetter"> Wetter beim Öffnen automatisch abrufen</label>
+        </div>
+        <p class="hint">Das Wetter wird pro Tag und Baustelle gespeichert, auch für Berichte, die du erst später erstellst.</p>
       </div>
       <div class="card">
         <h2>Daten</h2>
         <dl class="kv" id="dataInfo"></dl>
-        <button class="btn small" type="button" data-remove-demo id="removeDemoBtn" hidden>Beispieldaten entfernen</button>
+        <div class="row"><button class="btn small" type="button" data-remove-demo id="removeDemoBtn" hidden>Beispieldaten entfernen</button><button class="btn small" type="button" id="loadDemoBtn" hidden>Beispiel-Baustelle laden</button></div>
       </div>
     </section>
   </main>
 </div>
 
+<!-- Planansicht -->
+<div class="sheet" id="planSheet" role="dialog" aria-modal="true" aria-labelledby="planTitle" hidden>
+  <div class="sheet-head"><h2 id="planTitle">Plan</h2><button class="btn small" type="button" id="planClose">Schließen</button></div>
+  <div class="sheet-tools">
+    <div class="chips grow" id="planFloors"></div>
+    <div class="row"><button class="btn small" type="button" id="zoomOut" aria-label="Verkleinern">−</button><span class="mono" id="zoomVal">100 %</span><button class="btn small" type="button" id="zoomIn" aria-label="Vergrößern">+</button></div>
+  </div>
+  <div class="plan-scroll" id="planScroll"><div class="plan-wrap" id="planWrap"><img id="planImg" alt="Plan"><div id="planPins"></div></div></div>
+  <div class="sheet-foot" id="planFoot"></div>
+</div>
+
+<!-- Unterschrift -->
+<div class="sheet" id="sigSheet" role="dialog" aria-modal="true" aria-labelledby="sigTitle" hidden>
+  <div class="sheet-head"><h2 id="sigTitle">Unterschrift</h2><button class="btn small" type="button" id="sigClose">Abbrechen</button></div>
+  <div class="sig-pad">
+    <p class="hint" id="sigFor"></p>
+    <div class="two wrap">
+      <input type="text" id="sigName" placeholder="Name, z. B. Leo Bauer" aria-label="Name">
+      <input type="text" id="sigRole" list="rollenListe" placeholder="Funktion, z. B. Bauleitung" aria-label="Funktion">
+      <datalist id="rollenListe"><option value="Bauleitung"><option value="Auftragnehmer"><option value="Bauherr"><option value="Polier"><option value="Fachplanung"></datalist>
+    </div>
+    <canvas id="sigCanvas" aria-label="Unterschriftsfeld"></canvas>
+    <div class="row"><span class="hint grow">Mit dem Finger oder Stift unterschreiben.</span><button class="btn quiet small" type="button" id="sigReset">Leeren</button></div>
+    <p class="err-text" id="sigErr" hidden></p>
+  </div>
+  <div class="sheet-foot"><button class="btn primary grow" type="button" id="sigOk">Unterschrift übernehmen</button></div>
+</div>
+
+<input type="file" id="planFile" accept="application/pdf,image/*" hidden>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 "use strict";
 /* ---------- Konstanten und Hilfen ---------- */
-const KATS = [
-  ["fortschritt", "Fortschritt"], ["mangel", "Mangel"], ["behinderung", "Behinderung"], ["lieferung", "Lieferung"],
-  ["abnahme", "Abnahme"], ["besprechung", "Besprechung"], ["sonstiges", "Sonstiges"]
-];
+const KATS = [["fortschritt", "Fortschritt"], ["mangel", "Mangel"], ["behinderung", "Behinderung"], ["lieferung", "Lieferung"], ["abnahme", "Abnahme"], ["besprechung", "Besprechung"], ["sonstiges", "Sonstiges"]];
 const KAT_LABEL = Object.fromEntries(KATS);
 const WTAG = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
 const MONATE = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+const GESCHOSSE = ["3.UG", "2.UG", "UG", "KG", "EG", "1.OG", "2.OG", "3.OG", "4.OG", "5.OG", "6.OG", "7.OG", "8.OG", "DG", "Dach", "Lageplan", "Schnitt", "Ansicht"];
 const DEMO = "Beispiel: Kita Lindenhof";
+const SEED_VERSION = 2;
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const pad = (n, l = 2) => String(n).padStart(l, "0");
@@ -381,24 +457,28 @@ const hhmm = (iso) => { const d = new Date(iso); return `${pad(d.getHours())}:${
 const nrText = (n) => `BT-${pad(n, 4)}`;
 function isoWeek(d) {
   const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const day = t.getUTCDay() || 7;
-  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
   const y = t.getUTCFullYear();
   return { year: y, week: Math.ceil(((t - Date.UTC(y, 0, 1)) / 86400000 + 1) / 7) };
 }
+function weekDays(datum) { const d = parseIso(datum); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return Array.from({ length: 7 }, (_, i) => { const x = new Date(d); x.setDate(d.getDate() + i); return isoDate(x); }); }
+const weekKey = (datum) => { const k = isoWeek(parseIso(datum)); return `${k.year}-KW${pad(k.week)}`; };
 const safeName = (s) => (String(s).replace(/[\\/:*?"<>|]/g, "-").replace(/\s+/g, " ").trim() || "Baustelle");
-const WMO = { 0: "Klar", 1: "Überwiegend klar", 2: "Teilweise bewölkt", 3: "Bedeckt", 45: "Nebel", 48: "Nebel mit Reif",
-  51: "Leichter Nieselregen", 53: "Nieselregen", 55: "Starker Nieselregen", 56: "Gefrierender Nieselregen", 57: "Gefrierender Nieselregen",
-  61: "Leichter Regen", 63: "Regen", 65: "Starkregen", 66: "Gefrierender Regen", 67: "Gefrierender Regen",
-  71: "Leichter Schneefall", 73: "Schneefall", 75: "Starker Schneefall", 77: "Schneegriesel",
-  80: "Regenschauer", 81: "Regenschauer", 82: "Heftige Regenschauer", 85: "Schneeschauer", 86: "Schneeschauer",
-  95: "Gewitter", 96: "Gewitter mit Hagel", 99: "Gewitter mit Hagel" };
+const floorRank = (n) => { const i = GESCHOSSE.findIndex((g) => g.toLowerCase() === String(n).replace(/\s/g, "").toLowerCase()); return i < 0 ? 100 : i; };
+const WMO = { 0: "Klar", 1: "Überwiegend klar", 2: "Teilweise bewölkt", 3: "Bedeckt", 45: "Nebel", 48: "Nebel mit Reif", 51: "Leichter Nieselregen", 53: "Nieselregen", 55: "Starker Nieselregen",
+  56: "Gefrierender Nieselregen", 57: "Gefrierender Nieselregen", 61: "Leichter Regen", 63: "Regen", 65: "Starkregen", 66: "Gefrierender Regen", 67: "Gefrierender Regen",
+  71: "Leichter Schneefall", 73: "Schneefall", 75: "Starker Schneefall", 77: "Schneegriesel", 80: "Regenschauer", 81: "Regenschauer", 82: "Heftige Regenschauer",
+  85: "Schneeschauer", 86: "Schneeschauer", 95: "Gewitter", 96: "Gewitter mit Hagel", 99: "Gewitter mit Hagel" };
 const HOSTED = location.protocol === "https:" && !/claude|anthropic/i.test(location.hostname);
+const personalText = (p) => (p || []).filter((x) => x.firma).map((x) => `${x.firma}${x.anzahl ? " " + x.anzahl : ""}`).join(" · ");
 
 let toastTimer;
-function toast(msg) {
-  const t = $("#toast"); t.textContent = msg; t.hidden = false;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3400); }
+function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+const blobToDataUrl = (b) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
+function blobToImage(blob) {
+  const url = URL.createObjectURL(blob);
+  return new Promise((res, rej) => { const i = new Image(); i.onload = () => { res(i); setTimeout(() => URL.revokeObjectURL(url), 1000); }; i.onerror = rej; i.src = url; });
 }
 
 /* ---------- Speicher (IndexedDB, sonst Arbeitsspeicher) ---------- */
@@ -409,29 +489,19 @@ const DB = (() => {
     try {
       db = await new Promise((res, rej) => {
         const r = indexedDB.open("bautagebuch", 1);
-        r.onupgradeneeded = () => {
-          const d = r.result;
-          d.createObjectStore("entries", { keyPath: "id" });
-          d.createObjectStore("photos", { keyPath: "id" });
-          d.createObjectStore("kv", { keyPath: "k" });
-        };
-        r.onsuccess = () => res(r.result);
-        r.onerror = () => rej(r.error);
+        r.onupgradeneeded = () => { const d = r.result; d.createObjectStore("entries", { keyPath: "id" }); d.createObjectStore("photos", { keyPath: "id" }); d.createObjectStore("kv", { keyPath: "k" }); };
+        r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
       });
     } catch (e) { db = null; }
   }
   function tx(store, mode, fn) {
     return new Promise((res, rej) => {
-      const t = db.transaction(store, mode);
-      const req = fn(t.objectStore(store));
-      t.oncomplete = () => res(req ? req.result : undefined);
-      t.onerror = () => rej(t.error);
-      t.onabort = () => rej(t.error);
+      const t = db.transaction(store, mode); const req = fn(t.objectStore(store));
+      t.oncomplete = () => res(req ? req.result : undefined); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
     });
   }
   return {
-    open,
-    get persistent() { return !!db; },
+    open, get persistent() { return !!db; },
     async all(s) { if (!db) return [...mem[s].values()]; try { return await tx(s, "readonly", (o) => o.getAll()); } catch (e) { return []; } },
     async get(s, k) { if (!db) return mem[s].get(k); try { return await tx(s, "readonly", (o) => o.get(k)); } catch (e) { return undefined; } },
     async put(s, v) { if (!db) { mem[s].set(v.id ?? v.k, v); return; } return tx(s, "readwrite", (o) => o.put(v)); },
@@ -443,26 +513,33 @@ async function kvSet(k, v) { await DB.put("kv", { k, v }); }
 
 /* ---------- Zustand ---------- */
 const S = {
-  entries: [], baustellen: [], aktuell: "", autoWetter: true,
-  draft: { kat: "fortschritt", fotos: [], text: "", temp: "", wetter: "", wetterAuto: null, ort: null },
-  calMonth: null, calDay: null, calBaustelle: "",
-  editId: null, confirmId: null,
+  entries: [], baustellen: [], aktuell: "", meta: {},
+  opts: { personal: true, plaene: true, sig: true, autoWetter: true },
+  ki: { key: "", model: "gemini-2.5-flash" },
+  draft: null, calMonth: null, calDay: null, calBaustelle: "", scope: "tag",
+  rep: { roh: false, personal: true, sig: false },
+  editId: null, confirmId: null, showRoh: new Set(),
+  bDetail: null, bEdit: null, bConfirm: null,
   sync: { state: "idle", msg: "" }
 };
+const freshDraft = () => ({ kat: "fortschritt", fotos: [], textRoh: null, ki: null, temp: "", wetter: "", wetterAuto: null, ort: null, personal: [], pin: null });
+S.draft = freshDraft();
 const urlCache = new Map();
 
+function meta(b) { if (!S.meta[b]) S.meta[b] = { kontakte: [], plaene: [], geaendert: null }; return S.meta[b]; }
+async function saveMeta(b) { const m = meta(b); m.geaendert = new Date().toISOString(); await kvSet("meta:" + b, m); if (b !== DEMO) { await kvSet("dirty:" + b, true); sync(false); } }
+const plansOf = (b) => [...meta(b).plaene].sort((x, y) => floorRank(x.name) - floorRank(y.name) || x.name.localeCompare(y.name));
+const getPlan = (b, key) => meta(b).plaene.find((p) => p.key === key);
+
 /* ---------- Fotos ---------- */
-async function compress(file) {
-  const url = URL.createObjectURL(file);
-  try {
-    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
-    const s = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
-    const w = Math.round(img.naturalWidth * s), h = Math.round(img.naturalHeight * s);
-    const c = document.createElement("canvas"); c.width = w; c.height = h;
-    c.getContext("2d").drawImage(img, 0, 0, w, h);
-    const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.8));
-    return { blob, w, h };
-  } finally { URL.revokeObjectURL(url); }
+async function compress(src, max = 1600, q = 0.8) {
+  const img = src instanceof HTMLCanvasElement ? src : await blobToImage(src);
+  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  const s = Math.min(1, max / Math.max(iw, ih)); const w = Math.round(iw * s), h = Math.round(ih * s);
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, w, h); g.drawImage(img, 0, 0, w, h);
+  const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", q));
+  return { blob, w, h };
 }
 async function getPhotoBlob(f) {
   const rec = await DB.get("photos", f.id);
@@ -475,41 +552,66 @@ async function getPhotoBlob(f) {
 }
 async function photoUrl(f) {
   if (urlCache.has(f.id)) return urlCache.get(f.id);
-  try {
-    const rec = await getPhotoBlob(f);
-    if (!rec) return null;
-    const u = URL.createObjectURL(rec.blob); urlCache.set(f.id, u); return u;
-  } catch (e) { return null; }
+  try { const rec = await getPhotoBlob(f); if (!rec) return null; const u = URL.createObjectURL(rec.blob); urlCache.set(f.id, u); return u; } catch (e) { return null; }
 }
 function fillThumbs(root) {
   root.querySelectorAll("img[data-photo]").forEach(async (img) => {
-    const e = S.entries.find((x) => x.id === img.dataset.entry);
-    const f = e && e.fotos.find((x) => x.id === img.dataset.photo);
-    if (!f) return;
-    const u = await photoUrl(f);
-    if (u) img.src = u; else img.alt = "Foto nicht geladen";
+    const e = S.entries.find((x) => x.id === img.dataset.entry); const f = e && e.fotos.find((x) => x.id === img.dataset.photo);
+    if (!f) return; const u = await photoUrl(f); if (u) img.src = u; else img.alt = "Foto nicht geladen";
   });
+  root.querySelectorAll("img[data-plan]").forEach(async (img) => {
+    const [b, key] = img.dataset.plan.split("|"); const p = getPlan(b, key); if (!p) return;
+    const u = await photoUrl(p); if (u) img.src = u;
+  });
+}
+
+/* ---------- Pläne einlesen (PDF oder Bild) ---------- */
+const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+async function fileToPlanImage(file) {
+  if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) {
+    if (!window.pdfjsLib) {
+      await loadScript(PDFJS + "pdf.min.js");
+      try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([`importScripts("${PDFJS}pdf.worker.min.js");`], { type: "text/javascript" })); }
+      catch (e) { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; }
+    }
+    const pdf = await window.pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+    const page = await pdf.getPage(1);
+    const v1 = page.getViewport({ scale: 1 });
+    const scale = Math.min(4, 2800 / Math.max(v1.width, v1.height));
+    const vp = page.getViewport({ scale });
+    const c = document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+    await page.render({ canvasContext: g, viewport: vp }).promise;
+    const out = await compress(c, 2800, 0.85);
+    out.pages = pdf.numPages; return out;
+  }
+  return compress(file, 2800, 0.85);
+}
+async function addOrUpdatePlan(b, name, file, key) {
+  const img = await fileToPlanImage(file);
+  const m = meta(b); const id = uid();
+  await DB.put("photos", { id, blob: img.blob, w: img.w, h: img.h });
+  let p = key ? m.plaene.find((x) => x.key === key) : null;
+  if (p) { const old = p.id; p.id = id; p.version += 1; p.datum = new Date().toISOString(); p.w = img.w; p.h = img.h; p.path = null; p.datei = file.name; await DB.del("photos", old); urlCache.delete(old); }
+  else { p = { key: uid(), id, name, version: 1, datum: new Date().toISOString(), w: img.w, h: img.h, path: null, datei: file.name }; m.plaene.push(p); }
+  await saveMeta(b);
+  return { plan: p, pages: img.pages || 1 };
 }
 
 /* ---------- Dropbox ---------- */
 function hdr(o) { return JSON.stringify(o).replace(/[\u007f-￿]/g, (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")); }
 function randStr(n) { const a = new Uint8Array(n); crypto.getRandomValues(a); return Array.from(a, (b) => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"[b % 66]).join(""); }
-async function sha256url(s) {
-  const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return btoa(String.fromCharCode(...new Uint8Array(h))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
+async function sha256url(s) { const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return btoa(String.fromCharCode(...new Uint8Array(h))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
 const DBX = {
   key: "", tokens: null,
   get connected() { return !!(this.tokens && this.tokens.refresh_token); },
   redirectUri() { return location.origin + location.pathname; },
   async init() {
-    this.key = await kvGet("dbx:key", "");
-    this.tokens = await kvGet("dbx:tokens", null);
+    this.key = await kvGet("dbx:key", ""); this.tokens = await kvGet("dbx:tokens", null);
     const q = new URLSearchParams(location.search);
     if (q.get("error")) { history.replaceState(null, "", location.pathname + location.hash); toast("Dropbox-Verbindung abgebrochen."); return; }
-    const code = q.get("code");
-    if (!code) return;
-    history.replaceState(null, "", location.pathname + "#einstellungen");
+    const code = q.get("code"); if (!code) return;
+    history.replaceState(null, "", location.pathname + "#optionen");
     try {
       const body = new URLSearchParams({ code, grant_type: "authorization_code", code_verifier: await kvGet("dbx:verifier", ""), client_id: this.key, redirect_uri: this.redirectUri() });
       const r = await fetch("https://api.dropboxapi.com/oauth2/token", { method: "POST", body });
@@ -517,6 +619,7 @@ const DBX = {
       const j = await r.json();
       this.tokens = { access_token: j.access_token, refresh_token: j.refresh_token, exp: Date.now() + (j.expires_in - 60) * 1000, account: j.account_id };
       await kvSet("dbx:tokens", this.tokens); await kvSet("dbx:verifier", "");
+      for (const b of S.baustellen) if (b !== DEMO) await kvSet("dirty:" + b, true);
       toast("Mit Dropbox verbunden.");
     } catch (e) { toast("Dropbox-Anmeldung fehlgeschlagen. App-Key und Redirect-URI prüfen."); }
   },
@@ -534,41 +637,45 @@ const DBX = {
     const body = new URLSearchParams({ grant_type: "refresh_token", refresh_token: this.tokens.refresh_token, client_id: this.key });
     const r = await fetch("https://api.dropboxapi.com/oauth2/token", { method: "POST", body });
     if (!r.ok) { const e = new Error("Anmeldung abgelaufen. Bitte neu verbinden."); e.auth = true; throw e; }
-    const j = await r.json();
-    this.tokens.access_token = j.access_token; this.tokens.exp = Date.now() + (j.expires_in - 60) * 1000;
-    await kvSet("dbx:tokens", this.tokens);
-    return j.access_token;
+    const j = await r.json(); this.tokens.access_token = j.access_token; this.tokens.exp = Date.now() + (j.expires_in - 60) * 1000;
+    await kvSet("dbx:tokens", this.tokens); return j.access_token;
   },
   async rpc(ep, args) {
     const r = await fetch("https://api.dropboxapi.com/2/" + ep, { method: "POST", headers: { Authorization: "Bearer " + await this.token(), "Content-Type": "application/json" }, body: JSON.stringify(args) });
-    if (!r.ok) { const e = new Error(await r.text()); e.status = r.status; throw e; }
-    return r.json();
+    if (!r.ok) { const e = new Error(await r.text()); e.status = r.status; throw e; } return r.json();
   },
   async upload(path, blob) {
     const r = await fetch("https://content.dropboxapi.com/2/files/upload", { method: "POST", headers: { Authorization: "Bearer " + await this.token(), "Content-Type": "application/octet-stream", "Dropbox-API-Arg": hdr({ path, mode: "overwrite", autorename: false, mute: true }) }, body: blob });
-    if (!r.ok) throw new Error("Upload fehlgeschlagen: " + path);
-    return r.json();
+    if (!r.ok) throw new Error("Upload fehlgeschlagen: " + path); return r.json();
   },
   async download(path) {
     const r = await fetch("https://content.dropboxapi.com/2/files/download", { method: "POST", headers: { Authorization: "Bearer " + await this.token(), "Dropbox-API-Arg": hdr({ path }) } });
-    if (r.status === 409) return null;
-    if (!r.ok) throw new Error("Download fehlgeschlagen: " + path);
-    return r.blob();
+    if (r.status === 409) return null; if (!r.ok) throw new Error("Download fehlgeschlagen: " + path); return r.blob();
   }
 };
 function photoPath(e, i) {
-  const d = parseIso(e.datum), kw = isoWeek(d), t = new Date(e.ts);
-  return `/${safeName(e.baustelle)}/${kw.year}-KW${pad(kw.week)}/${nrText(e.nr)}_${e.datum}_${pad(t.getHours())}${pad(t.getMinutes())}_${e.kategorie}_${i + 1}.jpg`;
+  const t = new Date(e.ts);
+  return `/${safeName(e.baustelle)}/${weekKey(e.datum)}/${nrText(e.nr)}_${e.datum}_${pad(t.getHours())}${pad(t.getMinutes())}_${e.kategorie}_${i + 1}.jpg`;
 }
 function serialize(e) {
   return { id: e.id, nr: e.nr, nummer: nrText(e.nr), baustelle: e.baustelle, zeitpunkt: e.ts, datum: e.datum, kategorie: e.kategorie,
-    text: e.text, textOriginal: e.textOriginal || null, bearbeitet: e.bearbeitet || null, wetter: e.wetter || null, ort: e.ort || null,
-    fotos: e.fotos.map((f) => ({ id: f.id, path: f.path, w: f.w, h: f.h })) };
+    text: e.text, textRoh: e.textRoh || null, ki: e.ki || null, textOriginal: e.textOriginal || null, bearbeitet: e.bearbeitet || null,
+    gewerk: e.gewerk || null, ortImBau: e.ortImBau || null, personal: e.personal || [], pin: e.pin || null,
+    wetter: e.wetter || null, ort: e.ort || null, fotos: e.fotos.map((f) => ({ id: f.id, path: f.path, w: f.w, h: f.h })) };
 }
-async function loadRemote(b) {
-  const blob = await DBX.download(`/${safeName(b)}/eintraege.json`);
-  if (!blob) return null;
-  try { return JSON.parse(await blob.text()); } catch (e) { return null; }
+function deserialize(x, b) {
+  return { id: x.id, nr: x.nr, baustelle: b, ts: x.zeitpunkt, datum: x.datum, kategorie: x.kategorie, text: x.text, textRoh: x.textRoh, ki: x.ki,
+    textOriginal: x.textOriginal, bearbeitet: x.bearbeitet, gewerk: x.gewerk, ortImBau: x.ortImBau, personal: x.personal || [], pin: x.pin,
+    wetter: x.wetter, ort: x.ort, synced: true, remote: true, fotos: (x.fotos || []).map((f) => ({ id: f.id || uid(), path: f.path, w: f.w, h: f.h })) };
+}
+async function loadRemote(b) { const blob = await DBX.download(`/${safeName(b)}/eintraege.json`); if (!blob) return null; try { return JSON.parse(await blob.text()); } catch (e) { return null; } }
+async function adoptRemoteMeta(b, remote) {
+  if (!remote || !remote.meta) return false;
+  const local = meta(b);
+  if (local.geaendert && remote.meta.geaendert && local.geaendert >= remote.meta.geaendert) return false;
+  for (const p of local.plaene) { const rp = (remote.meta.plaene || []).find((x) => x.key === p.key); if (!rp || rp.id !== p.id) { await DB.del("photos", p.id); urlCache.delete(p.id); } }
+  S.meta[b] = { kontakte: remote.meta.kontakte || [], plaene: remote.meta.plaene || [], geaendert: remote.meta.geaendert };
+  await kvSet("meta:" + b, S.meta[b]); return true;
 }
 async function sync(manual) {
   if (S.sync.state === "running") return;
@@ -577,60 +684,64 @@ async function sync(manual) {
   setSync("running");
   try {
     const pending = S.entries.filter((e) => !e.synced && !e.beispiel);
-    const groups = [...new Set(pending.map((e) => e.baustelle))];
+    const groups = new Set(pending.map((e) => e.baustelle));
+    for (const b of S.baustellen) if (b !== DEMO && await kvGet("dirty:" + b, false)) groups.add(b);
     for (const b of groups) {
       for (const e of pending.filter((x) => x.baustelle === b)) {
         for (let i = 0; i < e.fotos.length; i++) {
-          const f = e.fotos[i];
-          if (f.path) continue;
-          const rec = await DB.get("photos", f.id);
-          if (!rec) continue;
-          const p = photoPath(e, i);
-          await DBX.upload(p, rec.blob);
-          f.path = p; await DB.put("entries", e);
+          const f = e.fotos[i]; if (f.path) continue;
+          const rec = await DB.get("photos", f.id); if (!rec) continue;
+          const p = photoPath(e, i); await DBX.upload(p, rec.blob); f.path = p; await DB.put("entries", e);
         }
       }
-      const remote = (await loadRemote(b)) || { version: 1, baustelle: b, eintraege: [], wetter: {} };
+      const remote = (await loadRemote(b)) || { version: 2, baustelle: b, eintraege: [], wetter: {} };
+      const m = meta(b);
+      const remoteNewer = remote.meta && remote.meta.geaendert && (!m.geaendert || remote.meta.geaendert > m.geaendert);
+      if (remoteNewer) await adoptRemoteMeta(b, remote);
+      else {
+        for (const p of m.plaene) {
+          if (p.path) continue;
+          const rec = await DB.get("photos", p.id); if (!rec) continue;
+          p.path = `/${safeName(b)}/Plaene/${safeName(p.name)}_v${p.version}.jpg`; await DBX.upload(p.path, rec.blob);
+        }
+        await kvSet("meta:" + b, m);
+        remote.meta = { kontakte: m.kontakte, plaene: m.plaene, geaendert: m.geaendert };
+      }
       const map = new Map((remote.eintraege || []).map((x) => [x.id, x]));
       S.entries.filter((e) => e.baustelle === b && !e.beispiel).forEach((e) => map.set(e.id, serialize(e)));
+      remote.version = 2;
       remote.eintraege = [...map.values()].sort((a, c) => a.nr - c.nr);
       remote.zaehler = Math.max(remote.zaehler || 0, await kvGet("zaehler:" + b, 0));
       remote.wetter = remote.wetter || {};
-      for (const d of new Set(S.entries.filter((e) => e.baustelle === b).map((e) => e.datum))) {
-        const w = await kvGet(`wetter:${b}|${d}`, null);
-        if (w) remote.wetter[d] = w;
-      }
+      for (const d of new Set(S.entries.filter((e) => e.baustelle === b).map((e) => e.datum))) { const w = await kvGet(`wetter:${b}|${d}`, null); if (w) remote.wetter[d] = w; }
       remote.aktualisiert = new Date().toISOString();
       await DBX.upload(`/${safeName(b)}/eintraege.json`, new Blob([JSON.stringify(remote, null, 2)], { type: "application/json" }));
       for (const e of pending.filter((x) => x.baustelle === b)) { e.synced = true; await DB.put("entries", e); }
+      await kvSet("dirty:" + b, false);
     }
     setSync("idle");
-    if (manual) toast(pending.length ? `${pending.length} Einträge hochgeladen.` : "Alles ist bereits in Dropbox.");
-  } catch (e) {
-    setSync("error", e.message);
-    if (manual) toast(e.message);
-  }
+    if (manual) toast(pending.length ? `${pending.length} Einträge hochgeladen.` : "Alles ist in Dropbox gesichert.");
+  } catch (e) { setSync("error", e.message); if (manual) toast(e.message); }
   render();
 }
 async function importRemote(manual) {
   if (!DBX.connected || !navigator.onLine) return;
   try {
-    const res = await DBX.rpc("files/list_folder", { path: "" });
-    let neu = 0;
+    const res = await DBX.rpc("files/list_folder", { path: "" }); let neu = 0;
     for (const it of res.entries.filter((x) => x[".tag"] === "folder")) {
-      const blob = await DBX.download(`/${it.name}/eintraege.json`);
-      if (!blob) continue;
+      const blob = await DBX.download(`/${it.name}/eintraege.json`); if (!blob) continue;
       let j; try { j = JSON.parse(await blob.text()); } catch (e) { continue; }
       const b = j.baustelle || it.name;
       if (!S.baustellen.includes(b)) { S.baustellen.push(b); await kvSet("baustellen", S.baustellen); }
       if ((j.zaehler || 0) > await kvGet("zaehler:" + b, 0)) await kvSet("zaehler:" + b, j.zaehler);
+      await adoptRemoteMeta(b, j);
       for (const [d, w] of Object.entries(j.wetter || {})) if (!(await kvGet(`wetter:${b}|${d}`, null))) await kvSet(`wetter:${b}|${d}`, w);
       for (const x of j.eintraege || []) {
-        if (S.entries.some((e) => e.id === x.id)) continue;
-        const e = { id: x.id, nr: x.nr, baustelle: b, ts: x.zeitpunkt, datum: x.datum, kategorie: x.kategorie, text: x.text,
-          textOriginal: x.textOriginal, bearbeitet: x.bearbeitet, wetter: x.wetter, ort: x.ort, synced: true, remote: true,
-          fotos: (x.fotos || []).map((f) => ({ id: f.id || uid(), path: f.path, w: f.w, h: f.h })) };
-        S.entries.push(e); await DB.put("entries", e); neu++;
+        const idx = S.entries.findIndex((e) => e.id === x.id);
+        if (idx >= 0) { const loc = S.entries[idx]; if (!loc.synced || (loc.bearbeitet || "") >= (x.bearbeitet || "")) continue; }
+        const e = deserialize(x, b);
+        if (idx >= 0) S.entries[idx] = e; else { S.entries.push(e); neu++; }
+        await DB.put("entries", e);
       }
     }
     if (manual) toast(neu ? `${neu} Einträge aus Dropbox geladen.` : "Keine neuen Einträge in Dropbox.");
@@ -652,79 +763,113 @@ async function loadWeather(manual) {
     if (!r.ok) throw new Error();
     const c = (await r.json()).current;
     const w = { temp: Math.round(c.temperature_2m), text: WMO[c.weather_code] || "Unbekannt", wind: Math.round(c.wind_speed_10m), quelle: "Open-Meteo", zeit: new Date().toISOString() };
-    S.draft.wetterAuto = w; S.draft.temp = String(w.temp); S.draft.wetter = w.text;
-    $("#tempInput").value = w.temp; $("#wetterInput").value = w.text;
+    S.draft.wetterAuto = w; $("#tempInput").value = w.temp; $("#wetterInput").value = w.text;
     st.textContent = `automatisch, ${hhmm(w.zeit)} Uhr · Wind ${w.wind} km/h`;
     const key = `wetter:${S.aktuell}|${isoDate(new Date())}`;
     if (S.aktuell && !(await kvGet(key, null))) await kvSet(key, w);
-  } catch (e) {
-    st.textContent = "Bitte von Hand eintragen";
-  }
+  } catch (e) { st.textContent = "Bitte von Hand eintragen"; }
 }
 
-/* ---------- Einträge anlegen und ändern ---------- */
+/* ---------- KI (Gemini) ---------- */
+async function kiStructure() {
+  const err = $("#kiErr"); err.hidden = true;
+  const ta = $("#textInput"); const roh = S.draft.textRoh || ta.value.trim();
+  if (!roh) { err.textContent = "Diktiere oder schreibe zuerst einen Text."; err.hidden = false; return; }
+  if (!navigator.onLine) { err.textContent = "Kein Netz. Der Text wird unverändert gespeichert, du kannst später strukturieren."; err.hidden = false; return; }
+  const firmen = meta(S.aktuell).kontakte.map((k) => k.firma).filter(Boolean);
+  const prompt = `Du bist Assistent einer Bauleitung in Deutschland. Forme das Diktat in einen sachlichen, knappen Bautagebuch-Eintrag um.
+Regeln: Rechtschreibung und Baufachbegriffe korrigieren. Keine Fakten erfinden und keine weglassen. Maße und Mengen als Ziffern mit Einheit. Vollständige Sätze im Präteritum oder Präsens, ohne Füllwörter.
+Antworte nur mit JSON: {"text": string, "kategorie": eine von [${KATS.map((k) => '"' + k[0] + '"').join(", ")}], "gewerk": string oder null, "ort": string oder null (Lage im Gebäude, z. B. "2. OG, Achse C/3"), "personal": [{"firma": string, "anzahl": Zahl}]}
+"personal" nur füllen, wenn eine Firma mit Personenzahl genannt wird.${firmen.length ? `\nBekannte Firmen dieser Baustelle (genaue Schreibweise verwenden): ${firmen.join("; ")}` : ""}
+Diktat: """${roh}"""`;
+  const btn = $("#kiBtn"); btn.disabled = true; btn.textContent = "KI arbeitet …";
+  try {
+    const model = (S.ki.model || "gemini-2.5-flash").trim();
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": S.ki.key },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2, responseMimeType: "application/json" } })
+    });
+    if (r.status === 400 || r.status === 403) throw new Error("Schlüssel oder Modellname ungültig. Bitte unter Optionen prüfen.");
+    if (r.status === 429) throw new Error("Kontingent erschöpft. Später erneut versuchen.");
+    if (!r.ok) throw new Error("Gemini antwortet nicht (Fehler " + r.status + ").");
+    const j = await r.json();
+    const raw = (((j.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text).join("") || "";
+    const o = JSON.parse(raw.replace(/^```(json)?|```$/g, "").trim());
+    if (!o.text) throw new Error("Die KI hat keinen Text geliefert.");
+    S.draft.textRoh = roh; S.draft.ki = { modell: model, zeit: new Date().toISOString() };
+    ta.value = o.text;
+    if (o.kategorie && KAT_LABEL[o.kategorie]) S.draft.kat = o.kategorie;
+    if (o.gewerk && !$("#gewerkInput").value) $("#gewerkInput").value = o.gewerk;
+    if (o.ort && !$("#ortInput").value) $("#ortInput").value = o.ort;
+    if (S.opts.personal && Array.isArray(o.personal) && o.personal.length) {
+      readPersonalRows();
+      for (const p of o.personal) if (p.firma && !S.draft.personal.some((x) => x.firma.toLowerCase() === p.firma.toLowerCase())) S.draft.personal.push({ firma: p.firma, anzahl: Number(p.anzahl) || "" });
+      $("#personalDetails").open = true;
+    }
+    kvSet("draftText", ta.value);
+    renderErfassen(); toast("Text strukturiert. Der Originaltext bleibt gespeichert.");
+  } catch (e) { err.textContent = e instanceof SyntaxError ? "Antwort der KI war unlesbar. Bitte erneut versuchen." : e.message; err.hidden = false; }
+  finally { btn.disabled = false; btn.textContent = "Mit KI strukturieren"; }
+}
+
+/* ---------- Einträge anlegen ---------- */
 async function nextNr(b) { const n = (await kvGet("zaehler:" + b, 0)) + 1; await kvSet("zaehler:" + b, n); return n; }
+function readPersonalRows() {
+  S.draft.personal = [...document.querySelectorAll("#personalRows .prow")].map((r) => ({ firma: r.querySelector("[data-f]").value.trim(), anzahl: r.querySelector("[data-a]").value === "" ? "" : Number(r.querySelector("[data-a]").value) }));
+}
 async function saveEntry() {
   const err = $("#saveErr"); err.hidden = true;
   const text = $("#textInput").value.trim();
   if (!S.aktuell) { err.textContent = "Lege zuerst eine Baustelle an."; err.hidden = false; return; }
   if (!text && !S.draft.fotos.length) { err.textContent = "Füge ein Foto oder eine Beschreibung hinzu."; err.hidden = false; return; }
-  const now = new Date();
+  readPersonalRows();
+  const now = new Date(); const wt = $("#wetterInput").value.trim(), tp = $("#tempInput").value;
   const e = {
-    id: uid(), nr: await nextNr(S.aktuell), baustelle: S.aktuell, ts: now.toISOString(), datum: isoDate(now),
-    kategorie: S.draft.kat, text, synced: false, beispiel: S.aktuell === DEMO,
-    wetter: ($("#tempInput").value !== "" || $("#wetterInput").value.trim()) ? { temp: $("#tempInput").value === "" ? null : Number($("#tempInput").value), text: $("#wetterInput").value.trim(), quelle: S.draft.wetterAuto && $("#wetterInput").value.trim() === S.draft.wetterAuto.text ? "Open-Meteo" : "manuell" } : null,
+    id: uid(), nr: await nextNr(S.aktuell), baustelle: S.aktuell, ts: now.toISOString(), datum: isoDate(now), kategorie: S.draft.kat, text,
+    textRoh: S.draft.textRoh, ki: S.draft.ki, gewerk: $("#gewerkInput").value.trim() || null, ortImBau: $("#ortInput").value.trim() || null,
+    personal: S.opts.personal ? S.draft.personal.filter((p) => p.firma) : [], pin: S.opts.plaene ? S.draft.pin : null,
+    synced: false, beispiel: S.aktuell === DEMO,
+    wetter: (tp !== "" || wt) ? { temp: tp === "" ? null : Number(tp), text: wt, quelle: S.draft.wetterAuto && wt === S.draft.wetterAuto.text ? "Open-Meteo" : "manuell" } : null,
     ort: S.draft.ort, fotos: []
   };
-  for (const p of S.draft.fotos) {
-    await DB.put("photos", { id: p.id, blob: p.blob, w: p.w, h: p.h });
-    e.fotos.push({ id: p.id, w: p.w, h: p.h, path: null });
-    urlCache.set(p.id, p.url);
-  }
+  for (const p of S.draft.fotos) { await DB.put("photos", { id: p.id, blob: p.blob, w: p.w, h: p.h }); e.fotos.push({ id: p.id, w: p.w, h: p.h, path: null }); urlCache.set(p.id, p.url); }
   const dayKey = `wetter:${e.baustelle}|${e.datum}`;
   if (e.wetter && !(await kvGet(dayKey, null))) await kvSet(dayKey, e.wetter);
   S.entries.push(e); await DB.put("entries", e);
-  S.draft.fotos = []; S.draft.text = ""; $("#textInput").value = "";
-  await kvSet("draftText", "");
-  toast(`${nrText(e.nr)} gespeichert.`);
-  render();
-  sync(false);
+  const keep = { wetterAuto: S.draft.wetterAuto, ort: S.draft.ort, kat: S.draft.kat };
+  S.draft = Object.assign(freshDraft(), keep);
+  $("#textInput").value = ""; $("#gewerkInput").value = ""; $("#ortInput").value = ""; await kvSet("draftText", "");
+  toast(`${nrText(e.nr)} gespeichert.`); render(); sync(false);
 }
 async function addPhotos(files) {
   for (const f of files) {
-    try {
-      const c = await compress(f);
-      S.draft.fotos.push({ id: uid(), blob: c.blob, w: c.w, h: c.h, url: URL.createObjectURL(c.blob) });
-    } catch (e) { toast("Foto konnte nicht gelesen werden."); }
+    try { const c = await compress(f); S.draft.fotos.push({ id: uid(), blob: c.blob, w: c.w, h: c.h, url: URL.createObjectURL(c.blob) }); }
+    catch (e) { toast("Foto konnte nicht gelesen werden."); }
   }
   renderDraftThumbs();
 }
 function vortag() {
   const today = isoDate(new Date());
-  const prev = S.entries.filter((e) => e.baustelle === S.aktuell && e.datum < today).sort((a, b) => b.ts.localeCompare(a.ts))[0]
-    || S.entries.filter((e) => e.baustelle === S.aktuell).sort((a, b) => b.ts.localeCompare(a.ts))[0];
+  const mine = S.entries.filter((e) => e.baustelle === S.aktuell).sort((a, b) => b.ts.localeCompare(a.ts));
+  const prev = mine.find((e) => e.datum < today) || mine[0];
   if (!prev) { toast("Für diese Baustelle gibt es noch keinen früheren Eintrag."); return; }
-  $("#textInput").value = prev.text; S.draft.kat = prev.kategorie;
-  renderChips();
-  toast(`Text von ${nrText(prev.nr)} (${deDate(prev.datum)}) übernommen. Bitte anpassen.`);
+  $("#textInput").value = prev.text; S.draft.kat = prev.kategorie; S.draft.textRoh = null; S.draft.ki = null;
+  $("#gewerkInput").value = prev.gewerk || ""; $("#ortInput").value = prev.ortImBau || "";
+  if (prev.personal && prev.personal.length) { S.draft.personal = prev.personal.map((p) => ({ ...p })); $("#personalDetails").open = true; }
+  renderErfassen(); toast(`Angaben von ${nrText(prev.nr)} (${deDate(prev.datum)}) übernommen. Bitte anpassen.`);
 }
 
-/* ---------- Diktat über Web Speech, falls vorhanden ---------- */
+/* ---------- Diktat ---------- */
 let rec = null, recOn = false;
 function setupDictation() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) return;
   $("#dictBtn").hidden = false;
   $("#dictHint").textContent = "„Diktieren“ schreibt mit, bis du erneut tippst. Alternativ das Mikrofon der Tastatur nutzen.";
   $("#dictBtn").addEventListener("click", () => {
     if (recOn) { rec && rec.stop(); return; }
     try {
       rec = new SR(); rec.lang = "de-DE"; rec.continuous = true; rec.interimResults = false;
-      rec.onresult = (ev) => {
-        let s = ""; for (let i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) s += ev.results[i][0].transcript;
-        const ta = $("#textInput"); ta.value = (ta.value ? ta.value.replace(/\s*$/, " ") : "") + s.trim();
-        kvSet("draftText", ta.value);
-      };
+      rec.onresult = (ev) => { let s = ""; for (let i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) s += ev.results[i][0].transcript; const ta = $("#textInput"); ta.value = (ta.value ? ta.value.replace(/\s*$/, " ") : "") + s.trim(); kvSet("draftText", ta.value); };
       rec.onend = () => { recOn = false; $("#dictBtn").textContent = "Diktieren"; };
       rec.onerror = () => { recOn = false; $("#dictBtn").textContent = "Diktieren"; toast("Mikrofon nicht verfügbar. Nutze das Mikrofon der Tastatur."); };
       rec.start(); recOn = true; $("#dictBtn").textContent = "Stopp";
@@ -732,185 +877,400 @@ function setupDictation() {
   });
 }
 
-/* ---------- PDF Tagesbericht ---------- */
-const blobToDataUrl = (b) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
-async function dayReport(b, datum) {
-  if (!window.jspdf) { toast("PDF-Modul nicht geladen. Einmal mit Netz öffnen."); return null; }
-  const list = S.entries.filter((e) => e.baustelle === b && e.datum === datum).sort((x, y) => x.ts.localeCompare(y.ts));
-  if (!list.length) return null;
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const W = 210, H = 297, M = 18, CW = W - 2 * M;
-  let y = M;
-  const ensure = (h) => { if (y + h > H - M - 6) { doc.addPage(); y = M; } };
-  const d = parseIso(datum), kw = isoWeek(d);
-  const w = (await kvGet(`wetter:${b}|${datum}`, null)) || (list.find((e) => e.wetter) || {}).wetter;
+/* ---------- Planansicht ---------- */
+const PV = { b: "", key: "", mode: "view", zoom: 1, pick: null, entries: [], sel: null, onPick: null };
+function openPlanSheet(opts) {
+  Object.assign(PV, { zoom: 1, sel: null, pick: null }, opts);
+  const plans = plansOf(PV.b);
+  if (!plans.length) { toast("Für diese Baustelle sind noch keine Pläne hinterlegt."); return; }
+  if (!PV.key || !getPlan(PV.b, PV.key)) PV.key = (PV.pick && PV.pick.planKey) || plans[0].key;
+  $("#planSheet").hidden = false; document.body.classList.add("locked");
+  renderPlanSheet(true);
+}
+function closePlanSheet() { $("#planSheet").hidden = true; document.body.classList.remove("locked"); }
+async function renderPlanSheet(reloadImg) {
+  const plans = plansOf(PV.b), p = getPlan(PV.b, PV.key);
+  $("#planTitle").textContent = PV.mode === "pick" ? "Lage im Plan markieren" : `Pläne · ${PV.b}`;
+  $("#planFloors").innerHTML = plans.map((x) => {
+    const n = PV.mode === "view" ? PV.entries.filter((e) => e.pin && e.pin.planKey === x.key).length : 0;
+    return `<button type="button" class="chip" data-floor="${x.key}" aria-pressed="${x.key === PV.key}">${esc(x.name)}${n ? ` · ${n}` : ""}</button>`;
+  }).join("");
+  $("#planWrap").style.width = PV.zoom * 100 + "%"; $("#zoomVal").textContent = PV.zoom * 100 + " %";
+  if (reloadImg) { const img = $("#planImg"); img.removeAttribute("src"); const u = await photoUrl(p); if (u) img.src = u; img.alt = `Plan ${p.name}, Version ${p.version}`; }
+  let pins = "";
+  if (PV.mode === "view") {
+    pins = PV.entries.filter((e) => e.pin && e.pin.planKey === PV.key).map((e) =>
+      `<div class="plan-pin${PV.sel === e.id ? " sel" : ""}" style="left:${e.pin.x * 100}%;top:${e.pin.y * 100}%"><span role="button" tabindex="0" data-pinentry="${e.id}" aria-label="${nrText(e.nr)}">${e.nr}</span></div>`).join("");
+  } else if (PV.pick && PV.pick.planKey === PV.key) {
+    pins = `<div class="plan-pin new" style="left:${PV.pick.x * 100}%;top:${PV.pick.y * 100}%"><span>+</span></div>`;
+  }
+  $("#planPins").innerHTML = pins;
+  const foot = $("#planFoot");
+  if (PV.mode === "pick") {
+    foot.innerHTML = `<span class="hint grow">${PV.pick ? `Pin gesetzt auf ${esc(getPlan(PV.b, PV.pick.planKey).name)}. Erneut tippen zum Verschieben.` : "Auf die Stelle im Plan tippen. Zum Vergrößern + nutzen."}</span>
+      <button class="btn small primary" type="button" id="pinOk"${PV.pick ? "" : " disabled"}>Pin übernehmen</button>`;
+  } else {
+    const e = PV.entries.find((x) => x.id === PV.sel);
+    foot.innerHTML = e ? `<div class="grow" style="min-width:0"><div class="entry-head"><span class="nr">${nrText(e.nr)}</span><span>${deDate(e.datum)} ${hhmm(e.ts)}</span><span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie])}</span></div><p class="entry-text" style="font-size:15px">${esc(e.text.length > 160 ? e.text.slice(0, 160) + " …" : e.text)}</p></div>`
+      : `<span class="hint grow">${PV.entries.filter((x) => x.pin && x.pin.planKey === PV.key).length ? "Pin antippen für Details." : "Auf diesem Plan gibt es keine Pins für die aktuelle Auswahl."} Plan Version ${p.version} vom ${deDate(isoDate(new Date(p.datum)))}.</span>`;
+  }
+}
 
-  doc.setFillColor(229, 160, 25); doc.rect(M, y, 4, 14, "F");
-  doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor(28, 32, 35);
-  doc.text("Bautagebuch – Tagesbericht", M + 8, y + 6);
-  doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(91, 98, 102);
-  doc.text(`${WTAG[d.getDay()]}, ${deDate(datum)} · KW ${kw.week}/${kw.year}`, M + 8, y + 12.5);
-  y += 22;
-  const rows = [
-    ["Baustelle", b],
-    ["Wetter", w ? `${w.temp != null ? w.temp + " °C, " : ""}${w.text || ""}${w.quelle ? " (" + w.quelle + ")" : ""}` : "nicht erfasst"],
-    ["Einträge", `${list.length} (${nrText(list[0].nr)} bis ${nrText(list[list.length - 1].nr)})`]
-  ];
-  doc.setFontSize(10);
-  rows.forEach(([k, v]) => {
-    doc.setFont("helvetica", "bold"); doc.setTextColor(91, 98, 102); doc.text(k.toUpperCase(), M, y);
-    doc.setFont("helvetica", "normal"); doc.setTextColor(28, 32, 35);
-    const lines = doc.splitTextToSize(v, CW - 32); doc.text(lines, M + 32, y); y += 5.2 * lines.length;
+/* ---------- Unterschrift ---------- */
+const SIG = { ink: false, b: "", key: "", label: "" };
+function openSig(b, key, label) {
+  Object.assign(SIG, { b, key, label, ink: false });
+  $("#sigFor").textContent = `Für: ${label}`; $("#sigErr").hidden = true; $("#sigName").value = ""; $("#sigRole").value = "";
+  $("#sigSheet").hidden = false; document.body.classList.add("locked");
+  requestAnimationFrame(sigResize);
+}
+function sigResize() {
+  const c = $("#sigCanvas"), r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+  const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.lineWidth = 2.4; g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = "#111";
+  SIG.ink = false;
+}
+function bindSig() {
+  const c = $("#sigCanvas"); let down = false, last = null;
+  const pt = (ev) => { const r = c.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; };
+  c.addEventListener("pointerdown", (ev) => { down = true; last = pt(ev); c.setPointerCapture(ev.pointerId); });
+  c.addEventListener("pointermove", (ev) => { if (!down) return; const p = pt(ev), g = c.getContext("2d"); g.beginPath(); g.moveTo(...last); g.lineTo(...p); g.stroke(); last = p; SIG.ink = true; $("#sigErr").hidden = true; });
+  ["pointerup", "pointercancel", "pointerleave"].forEach((t) => c.addEventListener(t, () => { down = false; }));
+  $("#sigReset").addEventListener("click", sigResize);
+  $("#sigClose").addEventListener("click", () => { $("#sigSheet").hidden = true; document.body.classList.remove("locked"); });
+  $("#sigOk").addEventListener("click", async () => {
+    const name = $("#sigName").value.trim(), er = $("#sigErr");
+    if (!name) { er.textContent = "Gib den Namen der unterschreibenden Person ein."; er.hidden = false; return; }
+    if (!SIG.ink) { er.textContent = "Bitte im Feld unterschreiben."; er.hidden = false; return; }
+    const k = `sig:${SIG.b}|${SIG.key}`; const list = await kvGet(k, []);
+    list.push({ id: uid(), name, rolle: $("#sigRole").value.trim(), bild: c.toDataURL("image/png"), zeit: new Date().toISOString() });
+    await kvSet(k, list);
+    $("#sigSheet").hidden = true; document.body.classList.remove("locked"); toast("Unterschrift gespeichert."); renderDayPanel();
   });
-  y += 2; doc.setDrawColor(28, 32, 35); doc.setLineWidth(0.6); doc.line(M, y, W - M, y); y += 8;
+}
 
+/* ---------- PDF-Berichte ---------- */
+async function planSnippet(b, pin) {
+  const p = getPlan(b, pin.planKey); if (!p) return null;
+  const rec = await getPhotoBlob(p).catch(() => null); if (!rec) return null;
+  const img = await blobToImage(rec.blob); const w = img.naturalWidth, h = img.naturalHeight;
+  const s = Math.round(Math.min(w, h) * 0.42); const cx = pin.x * w, cy = pin.y * h;
+  const sx = Math.max(0, Math.min(w - s, cx - s / 2)), sy = Math.max(0, Math.min(h - s, cy - s / 2));
+  const c = document.createElement("canvas"); c.width = 640; c.height = 640; const g = c.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, 640, 640); g.drawImage(img, sx, sy, s, s, 0, 0, 640, 640);
+  const px = (cx - sx) / s * 640, py = (cy - sy) / s * 640;
+  g.strokeStyle = "#d23c2a"; g.lineWidth = 7; g.beginPath(); g.arc(px, py, 26, 0, Math.PI * 2); g.stroke();
+  g.fillStyle = "#d23c2a"; g.beginPath(); g.arc(px, py, 8, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "rgba(28,32,35,.85)"; g.fillRect(0, 590, 640, 50); g.fillStyle = "#fff"; g.font = "600 26px Arial, sans-serif";
+  g.fillText(`Plan ${p.name} · Version ${p.version}`, 16, 624);
+  g.strokeStyle = "#1c2023"; g.lineWidth = 3; g.strokeRect(1.5, 1.5, 637, 637);
+  return { url: c.toDataURL("image/jpeg", 0.85), w: 640, h: 640 };
+}
+function pdfCtx() {
+  const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const ctx = { doc, W: 210, H: 297, M: 18, y: 18 }; ctx.CW = ctx.W - 2 * ctx.M;
+  ctx.ensure = (h) => { if (ctx.y + h > ctx.H - ctx.M - 6) { doc.addPage(); ctx.y = ctx.M; } };
+  ctx.color = (k) => { const m = { ink: [28, 32, 35], ink2: [91, 98, 102], ink3: [120, 126, 130], line: [214, 217, 210], accent: [229, 160, 25] }[k]; doc.setTextColor(...m); };
+  return ctx;
+}
+function pdfHeader(ctx, title, sub, rows) {
+  const { doc, M } = ctx;
+  doc.setFillColor(229, 160, 25); doc.rect(M, ctx.y, 4, 14, "F");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(20); ctx.color("ink"); doc.text(title, M + 8, ctx.y + 6);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(11); ctx.color("ink2"); doc.text(sub, M + 8, ctx.y + 12.5);
+  ctx.y += 22; doc.setFontSize(10);
+  rows.forEach(([k, v]) => {
+    doc.setFont("helvetica", "bold"); ctx.color("ink2"); doc.text(k.toUpperCase(), M, ctx.y);
+    doc.setFont("helvetica", "normal"); ctx.color("ink"); const lines = doc.splitTextToSize(v, ctx.CW - 34); doc.text(lines, M + 34, ctx.y); ctx.y += 5.2 * lines.length;
+  });
+  ctx.y += 2; doc.setDrawColor(28, 32, 35); doc.setLineWidth(0.6); doc.line(M, ctx.y, ctx.W - M, ctx.y); ctx.y += 8;
+}
+function pdfTable(ctx, cols, rows, widths) {
+  const { doc, M } = ctx; const x0 = [M]; widths.forEach((w, i) => x0.push(x0[i] + w));
+  ctx.ensure(14); doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); ctx.color("ink2");
+  cols.forEach((c, i) => doc.text(c.toUpperCase(), x0[i] + 1, ctx.y)); ctx.y += 2; doc.setDrawColor(28, 32, 35); doc.setLineWidth(0.3); doc.line(M, ctx.y, M + ctx.CW, ctx.y); ctx.y += 4.5;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); ctx.color("ink");
+  rows.forEach((r) => {
+    const cells = r.map((v, i) => doc.splitTextToSize(String(v), widths[i] - 2)); const h = Math.max(...cells.map((c) => c.length)) * 4.4;
+    ctx.ensure(h + 2); cells.forEach((c, i) => doc.text(c, x0[i] + 1, ctx.y)); ctx.y += h - 1;
+    doc.setDrawColor(214, 217, 210); doc.setLineWidth(0.15); doc.line(M, ctx.y, M + ctx.CW, ctx.y); ctx.y += 4.2;
+  });
+  ctx.y += 3;
+}
+function personalSummary(list) {
+  const m = new Map();
+  list.forEach((e) => (e.personal || []).forEach((p) => { if (!p.firma) return; const k = p.firma.trim(); m.set(k, Math.max(m.get(k) || 0, Number(p.anzahl) || 0)); }));
+  return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+}
+async function pdfEntries(ctx, b, list, o) {
+  const { doc, M, W, CW } = ctx;
   for (const e of list) {
-    ensure(18);
-    doc.setFont("courier", "bold"); doc.setFontSize(11); doc.setTextColor(28, 32, 35);
-    doc.text(nrText(e.nr), M, y);
-    doc.setFont("helvetica", "bold"); doc.text(`${hhmm(e.ts)} Uhr  ·  ${KAT_LABEL[e.kategorie] || e.kategorie}`, M + 26, y);
-    if (e.wetter && e.wetter.text && (!w || e.wetter.text !== w.text)) {
-      doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(91, 98, 102);
-      doc.text(`${e.wetter.temp != null ? e.wetter.temp + " °C, " : ""}${e.wetter.text}`, W - M, y, { align: "right" });
-    }
-    y += 6;
-    doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.setTextColor(28, 32, 35);
-    for (const line of doc.splitTextToSize(e.text || "(ohne Text)", CW)) { ensure(5.5); doc.text(line, M, y); y += 5.2; }
+    ctx.ensure(18);
+    doc.setFont("courier", "bold"); doc.setFontSize(11); ctx.color("ink"); doc.text(nrText(e.nr), M, ctx.y);
+    doc.setFont("helvetica", "bold"); doc.text(`${hhmm(e.ts)} Uhr  ·  ${KAT_LABEL[e.kategorie] || e.kategorie}${e.gewerk ? "  ·  " + e.gewerk : ""}`, M + 26, ctx.y);
+    ctx.y += 5.4;
+    const sub = [e.ortImBau && "Ort: " + e.ortImBau, e.pin && getPlan(b, e.pin.planKey) && "Plan " + getPlan(b, e.pin.planKey).name, e.wetter && e.wetter.text && `${e.wetter.temp != null ? e.wetter.temp + " °C, " : ""}${e.wetter.text}`].filter(Boolean).join("  ·  ");
+    if (sub) { doc.setFont("helvetica", "normal"); doc.setFontSize(9); ctx.color("ink2"); doc.text(doc.splitTextToSize(sub, CW), M, ctx.y); ctx.y += 5; }
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); ctx.color("ink");
+    for (const line of doc.splitTextToSize(e.text || "(ohne Text)", CW)) { ctx.ensure(5.5); doc.text(line, M, ctx.y); ctx.y += 5.2; }
+    if (o.personal && e.personal && e.personal.length) { doc.setFontSize(9.5); ctx.color("ink2"); const t = doc.splitTextToSize("Personal: " + personalText(e.personal), CW); ctx.ensure(t.length * 4.6); doc.text(t, M, ctx.y); ctx.y += t.length * 4.6; }
+    if (o.roh && e.textRoh) {
+      doc.setFont("helvetica", "italic"); doc.setFontSize(8.8); ctx.color("ink3");
+      const t = doc.splitTextToSize(`Originaltext (Diktat${e.ki ? ", KI-strukturiert mit " + e.ki.modell : ""}): ${e.textRoh}`, CW - 4);
+      ctx.ensure(t.length * 4.2 + 2); doc.setDrawColor(200, 204, 198); doc.setLineWidth(0.4); doc.line(M + 0.5, ctx.y - 3, M + 0.5, ctx.y - 3 + t.length * 4.2); doc.text(t, M + 3, ctx.y); ctx.y += t.length * 4.2 + 1;
+      doc.setFont("helvetica", "normal");
+    } else if (e.ki) { doc.setFontSize(8); ctx.color("ink3"); ctx.ensure(4.5); doc.text("Text KI-gestützt formuliert, Originaldiktat liegt vor.", M, ctx.y); ctx.y += 4.2; }
     if (e.bearbeitet) {
-      doc.setFontSize(8.5); doc.setTextColor(120, 126, 130);
-      const t = `Nachträglich bearbeitet am ${deDate(isoDate(new Date(e.bearbeitet)))} um ${hhmm(e.bearbeitet)} Uhr. Ursprünglicher Text: ${e.textOriginal || ""}`;
-      for (const line of doc.splitTextToSize(t, CW)) { ensure(4.5); doc.text(line, M, y); y += 4; }
+      doc.setFontSize(8.5); ctx.color("ink3");
+      for (const line of doc.splitTextToSize(`Nachträglich bearbeitet am ${deDate(isoDate(new Date(e.bearbeitet)))} um ${hhmm(e.bearbeitet)} Uhr. Vorheriger Text: ${e.textOriginal || ""}`, CW)) { ctx.ensure(4.5); doc.text(line, M, ctx.y); ctx.y += 4; }
     }
-    y += 2;
+    ctx.y += 2;
     const imgs = [];
+    if (e.pin) { const sn = await planSnippet(b, e.pin).catch(() => null); if (sn) imgs.push(sn); }
     for (const f of e.fotos) { const r = await getPhotoBlob(f).catch(() => null); if (r) imgs.push({ url: await blobToDataUrl(r.blob), w: r.w || f.w || 4, h: r.h || f.h || 3 }); }
     const colW = (CW - 6) / 2;
     for (let i = 0; i < imgs.length; i += 2) {
-      const pair = imgs.slice(i, i + 2).map((im) => { let wd = colW, ht = colW * im.h / im.w; if (ht > 100) { ht = 100; wd = ht * im.w / im.h; } return { ...im, wd, ht }; });
-      const rowH = Math.max(...pair.map((p) => p.ht));
-      ensure(rowH + 4);
-      pair.forEach((p, j) => doc.addImage(p.url, "JPEG", M + j * (colW + 6), y, p.wd, p.ht));
-      y += rowH + 5;
+      const pair = imgs.slice(i, i + 2).map((im) => { let wd = colW, ht = colW * im.h / im.w; if (ht > 95) { ht = 95; wd = ht * im.w / im.h; } return { ...im, wd, ht }; });
+      const rowH = Math.max(...pair.map((p) => p.ht)); ctx.ensure(rowH + 4);
+      pair.forEach((p, j) => doc.addImage(p.url, "JPEG", M + j * (colW + 6), ctx.y, p.wd, p.ht)); ctx.y += rowH + 5;
     }
-    doc.setDrawColor(214, 217, 210); doc.setLineWidth(0.2); ensure(6); doc.line(M, y, W - M, y); y += 7;
+    doc.setDrawColor(214, 217, 210); doc.setLineWidth(0.2); ctx.ensure(6); doc.line(M, ctx.y, W - M, ctx.y); ctx.y += 7;
   }
-  const n = doc.getNumberOfPages(), made = new Date();
-  for (let i = 1; i <= n; i++) {
-    doc.setPage(i); doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(120, 126, 130);
-    doc.text(`${b} · Tagesbericht ${deDate(datum)}`, M, H - 10);
-    doc.text(`Erstellt ${deDate(isoDate(made))}, ${pad(made.getHours())}:${pad(made.getMinutes())} · Seite ${i} von ${n}`, W - M, H - 10, { align: "right" });
+}
+function pdfSignatures(ctx, sigs) {
+  const { doc, M, CW } = ctx; const boxes = sigs.length ? sigs : [{ rolle: "Bauleitung" }, { rolle: "Auftragnehmer" }];
+  ctx.ensure(48); doc.setFont("helvetica", "bold"); doc.setFontSize(11); ctx.color("ink"); doc.text("Unterschriften", M, ctx.y); ctx.y += 6;
+  const bw = (CW - 10) / 2;
+  for (let i = 0; i < boxes.length; i += 2) {
+    ctx.ensure(36);
+    boxes.slice(i, i + 2).forEach((s, j) => {
+      const x = M + j * (bw + 10);
+      if (s.bild) doc.addImage(s.bild, "PNG", x, ctx.y, Math.min(bw, 60), 20);
+      doc.setDrawColor(28, 32, 35); doc.setLineWidth(0.3); doc.line(x, ctx.y + 22, x + bw, ctx.y + 22);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9); ctx.color("ink");
+      doc.text([s.name, s.rolle].filter(Boolean).join(", ") || "Name, Funktion", x, ctx.y + 26.5);
+      ctx.color("ink3"); doc.setFontSize(8);
+      doc.text(s.zeit ? `Unterschrieben am ${deDate(isoDate(new Date(s.zeit)))}, ${hhmm(s.zeit)} Uhr` : "Ort, Datum", x, ctx.y + 30.5);
+    });
+    ctx.y += 38;
   }
-  return doc.output("blob");
+}
+function pdfFooter(ctx, label) {
+  const { doc, M, W, H } = ctx; const n = doc.getNumberOfPages(), made = new Date();
+  for (let i = 1; i <= n; i++) { doc.setPage(i); doc.setFont("helvetica", "normal"); doc.setFontSize(8); ctx.color("ink3");
+    doc.text(label, M, H - 10); doc.text(`Erstellt ${deDate(isoDate(made))}, ${pad(made.getHours())}:${pad(made.getMinutes())} · Seite ${i} von ${n}`, W - M, H - 10, { align: "right" }); }
+}
+const wetterText = (w) => w ? `${w.temp != null ? w.temp + " °C, " : ""}${w.text || ""}` : "nicht erfasst";
+async function dayReport(b, datum, o) {
+  if (!window.jspdf) { toast("PDF-Modul nicht geladen. Einmal mit Netz öffnen."); return null; }
+  const list = S.entries.filter((e) => e.baustelle === b && e.datum === datum).sort((x, y) => x.ts.localeCompare(y.ts));
+  if (!list.length) return null;
+  const ctx = pdfCtx(), d = parseIso(datum), kw = isoWeek(d);
+  const w = (await kvGet(`wetter:${b}|${datum}`, null)) || (list.find((e) => e.wetter) || {}).wetter;
+  pdfHeader(ctx, "Bautagebuch – Tagesbericht", `${WTAG[d.getDay()]}, ${deDate(datum)} · KW ${kw.week}/${kw.year}`,
+    [["Baustelle", b], ["Wetter", wetterText(w) + (w && w.quelle ? ` (${w.quelle})` : "")], ["Einträge", `${list.length} (${nrText(list[0].nr)} bis ${nrText(list[list.length - 1].nr)})`]]);
+  const ps = personalSummary(list);
+  if (o.personal && ps.length) {
+    ctx.doc.setFont("helvetica", "bold"); ctx.doc.setFontSize(11); ctx.color("ink"); ctx.doc.text("Personal vor Ort", ctx.M, ctx.y); ctx.y += 6;
+    const kontakte = meta(b).kontakte;
+    pdfTable(ctx, ["Firma", "Gewerk", "Personen"], [...ps.map(([f, n]) => [f, (kontakte.find((k) => k.firma === f) || {}).gewerk || "", n || "–"]), ["Summe", "", ps.reduce((s, x) => s + x[1], 0)]], [90, 54, 30]);
+  }
+  await pdfEntries(ctx, b, list, o);
+  if (o.sig) pdfSignatures(ctx, await kvGet(`sig:${b}|${datum}`, []));
+  pdfFooter(ctx, `${b} · Tagesbericht ${deDate(datum)}`);
+  return ctx.doc.output("blob");
+}
+async function weekReport(b, datum, o) {
+  if (!window.jspdf) { toast("PDF-Modul nicht geladen. Einmal mit Netz öffnen."); return null; }
+  const days = weekDays(datum), kw = isoWeek(parseIso(datum));
+  const all = S.entries.filter((e) => e.baustelle === b && days.includes(e.datum)).sort((x, y) => x.ts.localeCompare(y.ts));
+  if (!all.length) return null;
+  const ctx = pdfCtx();
+  pdfHeader(ctx, "Bautagebuch – Wochenbericht", `KW ${kw.week}/${kw.year} · ${deDate(days[0])} bis ${deDate(days[6])}`,
+    [["Baustelle", b], ["Einträge", `${all.length} (${nrText(all[0].nr)} bis ${nrText(all[all.length - 1].nr)})`],
+     ["Kategorien", KATS.map(([id, l]) => [l, all.filter((e) => e.kategorie === id).length]).filter((x) => x[1]).map((x) => `${x[0]} ${x[1]}`).join(", ")]]);
+  const rows = [];
+  for (const d of days) {
+    const l = all.filter((e) => e.datum === d), dd = parseIso(d);
+    const w = (await kvGet(`wetter:${b}|${d}`, null)) || (l.find((e) => e.wetter) || {}).wetter;
+    const ps = personalSummary(l);
+    if (!l.length && dd.getDay() % 6 === 0) continue;
+    rows.push([`${WTAG[dd.getDay()].slice(0, 2)} ${deDate(d).slice(0, 6)}`, l.length ? wetterText(w) : "–", l.length || "kein Eintrag", o.personal ? (ps.length ? ps.reduce((s, x) => s + x[1], 0) + " (" + ps.length + " Firmen)" : "–") : ""]);
+  }
+  ctx.doc.setFont("helvetica", "bold"); ctx.doc.setFontSize(11); ctx.color("ink"); ctx.doc.text("Wochenübersicht", ctx.M, ctx.y); ctx.y += 6;
+  pdfTable(ctx, o.personal ? ["Tag", "Wetter", "Einträge", "Personal"] : ["Tag", "Wetter", "Einträge"], rows.map((r) => o.personal ? r : r.slice(0, 3)), o.personal ? [28, 66, 30, 50] : [30, 100, 44]);
+  const mangel = all.filter((e) => e.kategorie === "mangel" || e.kategorie === "behinderung");
+  if (mangel.length) {
+    ctx.doc.setFont("helvetica", "bold"); ctx.doc.setFontSize(11); ctx.color("ink"); ctx.doc.text("Mängel und Behinderungen der Woche", ctx.M, ctx.y); ctx.y += 6;
+    pdfTable(ctx, ["Nr.", "Datum", "Art", "Kurzbeschreibung"], mangel.map((e) => [nrText(e.nr), deDate(e.datum).slice(0, 6), KAT_LABEL[e.kategorie], e.text.length > 110 ? e.text.slice(0, 110) + " …" : e.text]), [22, 18, 26, 108]);
+  }
+  for (const d of days) {
+    const l = all.filter((e) => e.datum === d); if (!l.length) continue;
+    const dd = parseIso(d); ctx.ensure(20);
+    ctx.doc.setFillColor(239, 240, 236); ctx.doc.rect(ctx.M, ctx.y - 5, ctx.CW, 8, "F");
+    ctx.doc.setFont("helvetica", "bold"); ctx.doc.setFontSize(12); ctx.color("ink"); ctx.doc.text(`${WTAG[dd.getDay()]}, ${deDate(d)}`, ctx.M + 2, ctx.y); ctx.y += 9;
+    await pdfEntries(ctx, b, l, o);
+  }
+  if (o.sig) pdfSignatures(ctx, await kvGet(`sig:${b}|${weekKey(datum)}`, []));
+  pdfFooter(ctx, `${b} · Wochenbericht KW ${kw.week}/${kw.year}`);
+  return ctx.doc.output("blob");
+}
+async function autoWeekReports() {
+  if (!DBX.connected || !navigator.onLine || !window.jspdf) return;
+  const last = new Date(); last.setDate(last.getDate() - 7); const ld = isoDate(last), key = weekKey(ld), days = weekDays(ld);
+  for (const b of S.baustellen) {
+    if (b === DEMO || await kvGet(`wb:${b}|${key}`, false)) continue;
+    if (!S.entries.some((e) => e.baustelle === b && days.includes(e.datum))) continue;
+    try {
+      const blob = await weekReport(b, ld, { roh: S.rep.roh, personal: S.opts.personal, sig: false });
+      if (blob) { await DBX.upload(`/${safeName(b)}/Berichte/Wochenbericht_${safeName(b)}_${key}.pdf`, blob); await kvSet(`wb:${b}|${key}`, true); toast(`Wochenbericht ${key.replace("-", " ")} für ${b} in Dropbox abgelegt.`); }
+    } catch (e) {}
+  }
 }
 
 /* ---------- Beispieldaten ---------- */
 function demoPhoto(label, hue) {
-  const c = document.createElement("canvas"); c.width = 800; c.height = 600;
-  const g = c.getContext("2d");
-  g.fillStyle = `hsl(${hue} 12% 62%)`; g.fillRect(0, 0, 800, 600);
-  g.fillStyle = `hsl(${hue} 10% 48%)`; g.fillRect(0, 380, 800, 220);
-  g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = 6;
-  for (let x = 60; x < 800; x += 140) { g.beginPath(); g.moveTo(x, 80); g.lineTo(x, 380); g.stroke(); }
-  g.fillStyle = "rgba(20,22,24,.75)"; g.fillRect(0, 520, 800, 80);
-  g.fillStyle = "#fff"; g.font = "600 34px Barlow, Arial, sans-serif"; g.fillText("Beispielfoto · " + label, 28, 572);
+  const c = document.createElement("canvas"); c.width = 800; c.height = 600; const g = c.getContext("2d");
+  g.fillStyle = `hsl(${hue} 12% 62%)`; g.fillRect(0, 0, 800, 600); g.fillStyle = `hsl(${hue} 10% 48%)`; g.fillRect(0, 380, 800, 220);
+  g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = 6; for (let x = 60; x < 800; x += 140) { g.beginPath(); g.moveTo(x, 80); g.lineTo(x, 380); g.stroke(); }
+  g.fillStyle = "rgba(20,22,24,.75)"; g.fillRect(0, 520, 800, 80); g.fillStyle = "#fff"; g.font = "600 34px Barlow, Arial, sans-serif"; g.fillText("Beispielfoto · " + label, 28, 572);
   return new Promise((r) => c.toBlob((b) => r(b), "image/jpeg", 0.8));
 }
+function demoPlan(name, rooms) {
+  const W = 1600, H = 1000, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
+  const x0 = 160, y0 = 140, gx = 320, gy = 240;
+  g.strokeStyle = "#9aa0a4"; g.setLineDash([18, 8, 4, 8]); g.lineWidth = 1.5; g.font = "600 28px Arial"; g.fillStyle = "#5b6266";
+  "ABCDE".split("").forEach((a, i) => { const x = x0 + i * gx; g.beginPath(); g.moveTo(x, 70); g.lineTo(x, H - 60); g.stroke(); g.beginPath(); g.arc(x, 48, 22, 0, 7); g.stroke(); g.fillText(a, x - 9, 58); });
+  [1, 2, 3, 4].forEach((n, i) => { const y = y0 + i * gy; g.beginPath(); g.moveTo(70, y); g.lineTo(W - 60, y); g.stroke(); g.beginPath(); g.arc(46, y, 22, 0, 7); g.stroke(); g.fillText(String(n), 38, y + 10); });
+  g.setLineDash([]); g.strokeStyle = "#1c2023"; g.lineWidth = 14; g.strokeRect(x0, y0, gx * 4, gy * 3);
+  g.lineWidth = 6; rooms.forEach(([a, b2, c2, d, label]) => { g.strokeRect(x0 + a * gx, y0 + b2 * gy, c2 * gx, d * gy); g.fillStyle = "#1c2023"; g.font = "500 30px Arial"; g.fillText(label, x0 + a * gx + 24, y0 + b2 * gy + 48); });
+  g.fillStyle = "#1c2023"; g.font = "700 46px Arial"; g.fillText(`Beispielplan ${name} · Kita Lindenhof`, x0, H - 20);
+  return new Promise((r) => c.toBlob((b) => r(b), "image/jpeg", 0.85));
+}
 async function seedDemo() {
-  const now = new Date(), y1 = new Date(now); y1.setDate(now.getDate() - 1);
-  const y3 = new Date(now); y3.setDate(now.getDate() - 3);
+  const now = new Date(), d1 = new Date(now); d1.setDate(now.getDate() - 1); const d3 = new Date(now); d3.setDate(now.getDate() - 3);
   const at = (d, h, m) => { const x = new Date(d); x.setHours(h, m, 0, 0); return x; };
+  const m = meta(DEMO); m.plaene = []; m.kontakte = [
+    { id: uid(), firma: "Stein Trockenbau GmbH", gewerk: "Trockenbau", person: "Herr Stein (Beispiel)", tel: "030 555 0101", mail: "info@stein-beispiel.de", notiz: "Polier ab 7:00 vor Ort" },
+    { id: uid(), firma: "Boden & Co.", gewerk: "Estrich", person: "Frau Yilmaz (Beispiel)", tel: "030 555 0102", mail: "bauleitung@boden-beispiel.de", notiz: "" },
+    { id: uid(), firma: "Elektro Kraus", gewerk: "Elektro", person: "Herr Kraus (Beispiel)", tel: "030 555 0103", mail: "", notiz: "" },
+    { id: uid(), firma: "TGA-Planung Nord", gewerk: "Fachplanung HLS", person: "Frau Lenz (Beispiel)", tel: "", mail: "lenz@tga-beispiel.de", notiz: "Ansprechpartnerin Schlitzplanung" }];
+  const plans = [["EG", [[0, 0, 2, 2, "Gruppenraum 1"], [2, 0, 2, 2, "Gruppenraum 2"], [0, 2, 1, 1, "Küche"], [1, 2, 2, 1, "Flur"], [3, 2, 1, 1, "WC"]]],
+    ["1.OG", [[0, 0, 1.5, 3, "Büro"], [1.5, 0, 2.5, 1.5, "Bewegungsraum"], [1.5, 1.5, 1.5, 1.5, "Schlafraum"], [3, 1.5, 1, 1.5, "Technik"]]]];
+  for (const [name, rooms] of plans) { const blob = await demoPlan(name, rooms); const id = uid(); await DB.put("photos", { id, blob, w: 1600, h: 1000 }); m.plaene.push({ key: uid(), id, name, version: 1, datum: now.toISOString(), w: 1600, h: 1000, path: null, datei: "Beispiel" }); }
+  const [eg, og] = m.plaene;
   const items = [
-    [y3, 7, 40, "lieferung", "Fensterelemente 1. OG geliefert (12 Stück), Sichtprüfung ohne Befund. Lieferschein abgelegt.", 6, "Bedeckt", "Lieferung", 30],
-    [y1, 8, 5, "fortschritt", "Trockenbau 2. OG Achse A–D abgeschlossen. Firma Stein mit 4 Mann vor Ort.", 4, "Leichter Regen", "Trockenbau", 200],
-    [y1, 13, 20, "behinderung", "Kran ab 11:30 außer Betrieb (Windwarnung). Betonage Decke über EG auf morgen verschoben.", 4, "Leichter Regen", null, 0],
-    [now, 7, 55, "mangel", "Riss im Estrich, Achse C/3, ca. 1,2 m lang. Firma Boden & Co. informiert, Stellungnahme angefordert.", 8, "Teilweise bewölkt", "Riss Estrich", 20],
-    [now, 10, 30, "besprechung", "Baubesprechung mit Bauherr und TGA-Planung: Schlitze Sanitär 1. OG freigegeben.", 8, "Teilweise bewölkt", null, 0]
+    [d3, 7, 40, "lieferung", "Fensterelemente 1. OG geliefert (12 Stück), Sichtprüfung ohne Befund. Lieferschein abgelegt.", 6, "Bedeckt", "Lieferung", 30, { gewerk: "Fenster", pin: { planKey: og.key, x: 0.5, y: 0.13 } }],
+    [d1, 8, 5, "fortschritt", "Trockenbau 2. OG Achse A–D abgeschlossen.", 4, "Leichter Regen", "Trockenbau", 200, { gewerk: "Trockenbau", personal: [{ firma: "Stein Trockenbau GmbH", anzahl: 4 }, { firma: "Elektro Kraus", anzahl: 2 }] }],
+    [d1, 13, 20, "behinderung", "Kran ab 11:30 außer Betrieb (Windwarnung). Betonage Decke über EG auf morgen verschoben.", 4, "Leichter Regen", null, 0, {}],
+    [now, 7, 55, "mangel", "Im Estrich zeigt sich bei Achse C/3 ein Riss von ca. 1,2 m Länge. Firma Boden & Co. wurde telefonisch informiert und um Stellungnahme gebeten.", 8, "Teilweise bewölkt", "Riss Estrich", 20,
+      { gewerk: "Estrich", ortImBau: "EG, Achse C/3", pin: { planKey: eg.key, x: 0.64, y: 0.62 }, personal: [{ firma: "Boden & Co.", anzahl: 3 }],
+        textRoh: "ja also im estrich achse c drei da is n riss so ungefähr eins zwanzig lang boden und co hab ich angerufen die sollen sich melden", ki: { modell: "Beispiel", zeit: now.toISOString() } }],
+    [now, 10, 30, "besprechung", "Baubesprechung mit Bauherr und TGA-Planung: Schlitze Sanitär 1. OG freigegeben.", 8, "Teilweise bewölkt", null, 0, { ortImBau: "1. OG, Technik", pin: { planKey: og.key, x: 0.82, y: 0.6 } }]
   ];
   if (!S.baustellen.includes(DEMO)) S.baustellen.push(DEMO);
   let nr = 0;
-  for (const [d, h, m, kat, text, temp, wt, foto, hue] of items) {
-    const ts = at(d, h, m), e = { id: uid(), nr: ++nr, baustelle: DEMO, ts: ts.toISOString(), datum: isoDate(ts), kategorie: kat, text, synced: false, beispiel: true, wetter: { temp, text: wt, quelle: "Beispiel" }, fotos: [] };
+  for (const [d, h, mi, kat, text, temp, wt, foto, hue, extra] of items) {
+    const ts = at(d, h, mi);
+    const e = Object.assign({ id: uid(), nr: ++nr, baustelle: DEMO, ts: ts.toISOString(), datum: isoDate(ts), kategorie: kat, text, synced: false, beispiel: true, wetter: { temp, text: wt, quelle: "Beispiel" }, fotos: [], personal: [] }, extra);
     if (foto) { const blob = await demoPhoto(foto, hue); const id = uid(); await DB.put("photos", { id, blob, w: 800, h: 600 }); e.fotos.push({ id, w: 800, h: 600, path: null }); }
-    S.entries.push(e); await DB.put("entries", e);
-    await kvSet(`wetter:${DEMO}|${e.datum}`, e.wetter);
+    S.entries.push(e); await DB.put("entries", e); await kvSet(`wetter:${DEMO}|${e.datum}`, e.wetter);
   }
-  await kvSet("zaehler:" + DEMO, nr); await kvSet("baustellen", S.baustellen); await kvSet("seeded", true);
+  await kvSet("meta:" + DEMO, m); await kvSet("zaehler:" + DEMO, nr); await kvSet("baustellen", S.baustellen); await kvSet("seeded", true); await kvSet("seedVersion", SEED_VERSION);
   if (!S.aktuell) { S.aktuell = DEMO; await kvSet("aktuell", DEMO); }
 }
-async function removeDemo() {
+async function clearDemo() {
   for (const e of S.entries.filter((x) => x.beispiel)) { for (const f of e.fotos) await DB.del("photos", f.id); await DB.del("entries", e.id); }
-  S.entries = S.entries.filter((x) => !x.beispiel);
+  for (const p of meta(DEMO).plaene) await DB.del("photos", p.id);
+  S.entries = S.entries.filter((x) => !x.beispiel); delete S.meta[DEMO]; await kvSet("meta:" + DEMO, null);
   S.baustellen = S.baustellen.filter((b) => b !== DEMO); await kvSet("baustellen", S.baustellen);
+}
+async function removeDemo() {
+  await clearDemo();
   if (S.aktuell === DEMO) { S.aktuell = S.baustellen[0] || ""; await kvSet("aktuell", S.aktuell); }
-  if (S.calBaustelle === DEMO) S.calBaustelle = S.aktuell;
+  if (S.calBaustelle === DEMO) S.calBaustelle = S.aktuell; if (S.bDetail === DEMO) S.bDetail = null;
   toast("Beispieldaten entfernt."); render();
 }
 
 /* ---------- Darstellung ---------- */
-function currentView() { const h = location.hash.slice(1); return ["erfassen", "eintraege", "kalender", "einstellungen"].includes(h) ? h : "erfassen"; }
+const VIEWS = ["erfassen", "eintraege", "kalender", "baustellen", "optionen"];
+function currentView() { const h = location.hash.slice(1); if (h === "einstellungen") return "optionen"; return VIEWS.includes(h) ? h : "erfassen"; }
 function renderSyncPill() {
-  const p = $("#syncPill"), t = $("#syncText");
-  const open = S.entries.filter((e) => !e.synced && !e.beispiel).length;
-  p.className = "pill";
-  if (!DBX.connected) { t.textContent = open ? `${open} nur auf diesem Gerät` : "Nur auf diesem Gerät"; }
+  const p = $("#syncPill"), t = $("#syncText"); const open = S.entries.filter((e) => !e.synced && !e.beispiel).length; p.className = "pill";
+  if (!DBX.connected) t.textContent = open ? `${open} nur auf diesem Gerät` : "Nur auf diesem Gerät";
   else if (S.sync.state === "running") { p.classList.add("wait"); t.textContent = "Lädt hoch …"; }
   else if (S.sync.state === "error") { p.classList.add("err"); t.textContent = "Upload fehlgeschlagen"; }
   else if (open) { p.classList.add("wait"); t.textContent = `${open} warten auf Upload`; }
   else { p.classList.add("ok"); t.textContent = "In Dropbox gesichert"; }
 }
-function baustelleOptions(sel, withAll) {
-  return (withAll ? `<option value="">Alle Baustellen</option>` : "") +
-    S.baustellen.map((b) => `<option value="${esc(b)}"${b === sel ? " selected" : ""}>${esc(b)}</option>`).join("");
-}
-function renderChips() {
-  $("#katChips").innerHTML = KATS.map(([id, l]) => `<button type="button" class="chip" data-kat="${id}" aria-pressed="${S.draft.kat === id}">${l}</button>`).join("");
-}
+function baustelleOptions(sel, withAll) { return (withAll ? `<option value="">Alle Baustellen</option>` : "") + S.baustellen.map((b) => `<option value="${esc(b)}"${b === sel ? " selected" : ""}>${esc(b)}</option>`).join(""); }
+function renderChips() { $("#katChips").innerHTML = KATS.map(([id, l]) => `<button type="button" class="chip" data-kat="${id}" aria-pressed="${S.draft.kat === id}">${l}</button>`).join(""); }
 function renderDraftThumbs() {
   $("#draftThumbs").innerHTML = S.draft.fotos.map((p, i) => `<div class="thumb"><img src="${p.url}" alt="Foto ${i + 1}"><button type="button" class="x" data-rm="${p.id}" aria-label="Foto ${i + 1} entfernen">×</button></div>`).join("");
-  $("#shootBtn").lastChild.textContent = S.draft.fotos.length ? "Weiteres Foto" : "Foto aufnehmen";
+  $("#shootLabel").textContent = S.draft.fotos.length ? "Weiteres Foto" : "Foto aufnehmen";
+}
+function renderPersonalRows() {
+  const rows = S.draft.personal.length ? S.draft.personal : [];
+  $("#personalRows").innerHTML = rows.map((p, i) => `<div class="prow"><input type="text" data-f list="firmenListe" value="${esc(p.firma)}" placeholder="Firma" aria-label="Firma ${i + 1}"><input type="number" data-a inputmode="numeric" min="0" value="${esc(p.anzahl)}" placeholder="Pers." aria-label="Personen ${i + 1}"><button class="btn quiet small" type="button" data-prm="${i}" aria-label="Zeile entfernen">×</button></div>`).join("");
+  $("#firmenListe").innerHTML = meta(S.aktuell).kontakte.map((k) => `<option value="${esc(k.firma)}">`).join("");
+  const n = S.draft.personal.filter((p) => p.firma).length;
+  $("#personalSum").textContent = n ? `(${n} ${n === 1 ? "Firma" : "Firmen"}, ${S.draft.personal.reduce((s, p) => s + (Number(p.anzahl) || 0), 0)} Pers.)` : "(optional)";
+}
+function renderPin() {
+  const plans = S.aktuell ? plansOf(S.aktuell) : [];
+  $("#pinCard").hidden = !(S.opts.plaene && plans.length);
+  if ($("#pinCard").hidden) return;
+  const p = S.draft.pin && getPlan(S.aktuell, S.draft.pin.planKey);
+  $("#pinBox").innerHTML = p ? `<span class="dotpin"></span><span class="where grow">Plan ${esc(p.name)} · Pin gesetzt</span><button class="btn small" type="button" id="pinEdit">Ändern</button><button class="btn quiet small danger" type="button" id="pinDel">Entfernen</button>`
+    : `<button class="btn" type="button" id="pinEdit">Auf Plan markieren</button><span class="hint">${plans.map((x) => esc(x.name)).join(" · ")}</span>`;
 }
 function renderErfassen() {
   $("#baustelleSel").innerHTML = S.baustellen.length ? baustelleOptions(S.aktuell) : `<option value="">Noch keine Baustelle</option>`;
   if (!S.baustellen.length) $("#neueBaustelleRow").hidden = false;
   renderChips(); renderDraftThumbs();
+  $("#kiBtn").hidden = !S.ki.key;
+  $("#rawBox").hidden = !S.draft.textRoh; $("#rawText").textContent = S.draft.textRoh || "";
+  $("#personalCard").hidden = !S.opts.personal; if (S.opts.personal) renderPersonalRows();
+  renderPin();
 }
 function entryCard(e) {
   const editing = S.editId === e.id, confirming = S.confirmId === e.id;
   const kat = `<span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie] || e.kategorie)}</span>`;
-  const sync = e.beispiel ? `<span class="tag beispiel">Beispiel</span>` : e.synced ? `<span class="sync" style="color:var(--ok)">✓ Dropbox</span>` : `<span class="sync" style="color:var(--warn)">● wartet</span>`;
+  const sync = e.beispiel ? `<span class="tag beispiel sync">Beispiel</span>` : e.synced ? `<span class="sync" style="color:var(--ok)">● Dropbox</span>` : `<span class="sync" style="color:var(--warn)">● wartet</span>`;
+  const plan = e.pin && getPlan(e.baustelle, e.pin.planKey);
   const thumbs = e.fotos.length ? `<div class="thumbs">${e.fotos.map((f, i) => `<div class="thumb"><img data-entry="${e.id}" data-photo="${f.id}" alt="Foto ${i + 1} zu ${nrText(e.nr)}"></div>`).join("")}</div>` : "";
-  const meta = [e.wetter && e.wetter.text ? `${e.wetter.temp != null ? e.wetter.temp + " °C, " : ""}${esc(e.wetter.text)}` : "", e.bearbeitet ? `bearbeitet ${deDate(isoDate(new Date(e.bearbeitet)))} ${hhmm(e.bearbeitet)}` : ""].filter(Boolean).join(" · ");
+  const meta1 = [e.gewerk && esc(e.gewerk), e.ortImBau && esc(e.ortImBau), e.wetter && e.wetter.text ? `${e.wetter.temp != null ? e.wetter.temp + " °C, " : ""}${esc(e.wetter.text)}` : "", e.bearbeitet ? `bearbeitet ${deDate(isoDate(new Date(e.bearbeitet)))} ${hhmm(e.bearbeitet)}` : ""].filter(Boolean).join(" · ");
+  const pers = e.personal && e.personal.length ? `<p class="entry-meta">Personal: ${esc(personalText(e.personal))}</p>` : "";
+  const roh = e.textRoh && S.showRoh.has(e.id) ? `<div class="raw"><span class="label">Originaltext (Diktat)</span><p>${esc(e.textRoh)}</p></div>` : "";
   return `<article class="entry" data-id="${e.id}">
-    <div class="entry-head"><span class="nr">${nrText(e.nr)}</span><span>${hhmm(e.ts)}</span>${kat}${S.baustellen.length > 1 && !$("#fBaustelle").value ? `<span>${esc(e.baustelle)}</span>` : ""}${sync}</div>
-    ${editing ? `<textarea id="edit-${e.id}" aria-label="Text bearbeiten">${esc(e.text)}</textarea><div class="row"><button class="btn small" type="button" data-act="save-edit">Änderung speichern</button><button class="btn quiet small" type="button" data-act="cancel">Abbrechen</button></div><p class="hint">Der ursprüngliche Text bleibt im Bericht vermerkt.</p>`
+    <div class="entry-head"><span class="nr">${nrText(e.nr)}</span><span>${hhmm(e.ts)}</span>${kat}${e.textRoh ? `<button type="button" class="tag ki" data-act="roh" aria-pressed="${S.showRoh.has(e.id)}">KI · Original ${S.showRoh.has(e.id) ? "ausblenden" : "zeigen"}</button>` : ""}${plan ? `<button type="button" class="tag" data-act="pin">Plan ${esc(plan.name)}</button>` : ""}${S.baustellen.length > 1 && !$("#fBaustelle").value ? `<span>${esc(e.baustelle)}</span>` : ""}${sync}</div>
+    ${editing ? `<textarea id="edit-${e.id}" aria-label="Text bearbeiten">${esc(e.text)}</textarea><div class="row"><button class="btn small" type="button" data-act="save-edit">Änderung speichern</button><button class="btn quiet small" type="button" data-act="cancel">Abbrechen</button></div><p class="hint">Der vorherige Text bleibt im Bericht vermerkt.</p>`
       : `<p class="entry-text">${esc(e.text) || "<em>ohne Text</em>"}</p>`}
-    ${thumbs}
-    ${meta ? `<p class="entry-meta">${meta}</p>` : ""}
+    ${roh}${thumbs}${pers}${meta1 ? `<p class="entry-meta">${meta1}</p>` : ""}
     ${confirming ? `<div class="confirm">Eintrag ${nrText(e.nr)} löschen? <button class="btn small danger" type="button" data-act="del-yes">Löschen</button><button class="btn quiet small" type="button" data-act="cancel">Behalten</button></div>`
       : editing ? "" : `<div class="row"><button class="btn quiet small" type="button" data-act="edit">Bearbeiten</button>${!e.synced || e.beispiel ? `<button class="btn quiet small danger" type="button" data-act="del">Löschen</button>` : ""}</div>`}
   </article>`;
 }
+function filteredEntries() {
+  const fb = $("#fBaustelle").value, fk = $("#fKat").value, q = $("#fText").value.trim().toLowerCase();
+  return S.entries.filter((e) => (!fb || e.baustelle === fb) && (!fk || e.kategorie === fk) &&
+    (!q || e.text.toLowerCase().includes(q) || nrText(e.nr).toLowerCase().includes(q) || personalText(e.personal).toLowerCase().includes(q) || (e.gewerk || "").toLowerCase().includes(q) || (e.ortImBau || "").toLowerCase().includes(q)))
+    .sort((a, b) => b.ts.localeCompare(a.ts));
+}
 function renderEintraege() {
-  const fb = $("#fBaustelle"), fk = $("#fKat");
-  const vb = fb.value, vk = fk.value;
+  const fb = $("#fBaustelle"), fk = $("#fKat"); const vb = fb.value, vk = fk.value;
   fb.innerHTML = baustelleOptions(vb, true);
   fk.innerHTML = `<option value="">Alle Kategorien</option>` + KATS.map(([id, l]) => `<option value="${id}"${id === vk ? " selected" : ""}>${l}</option>`).join("");
-  const q = $("#fText").value.trim().toLowerCase();
-  const list = S.entries.filter((e) => (!fb.value || e.baustelle === fb.value) && (!fk.value || e.kategorie === fk.value) &&
-    (!q || e.text.toLowerCase().includes(q) || nrText(e.nr).toLowerCase().includes(q))).sort((a, b) => b.ts.localeCompare(a.ts));
-  const box = $("#entryList");
-  if (!list.length) {
-    box.innerHTML = S.entries.length ? `<div class="empty"><strong>Keine Treffer</strong>Filter oder Suchbegriff ändern.</div>`
-      : `<div class="empty"><strong>Noch keine Einträge</strong>Unter „Erfassen“ den ersten Eintrag mit Foto und Text anlegen.</div>`;
-    return;
-  }
+  const pb = fb.value || S.aktuell;
+  $("#planViewBtn").hidden = !(S.opts.plaene && pb && plansOf(pb).length);
+  $("#planViewBtn").textContent = "Pläne mit Pins anzeigen";
+  const list = filteredEntries(), box = $("#entryList");
+  if (!list.length) { box.innerHTML = S.entries.length ? `<div class="empty"><strong>Keine Treffer</strong>Filter oder Suchbegriff ändern.</div>` : `<div class="empty"><strong>Noch keine Einträge</strong>Unter „Erfassen“ den ersten Eintrag mit Foto und Text anlegen.</div>`; return; }
   let html = "", last = "";
   for (const e of list) {
-    if (e.datum !== last) {
-      last = e.datum; const d = parseIso(e.datum), n = list.filter((x) => x.datum === e.datum).length;
-      html += `<div class="day-head"><h2>${WTAG[d.getDay()]}, ${deDate(e.datum)}</h2><span class="mono">KW ${isoWeek(d).week} · ${n} ${n === 1 ? "Eintrag" : "Einträge"}</span></div>`;
-    }
+    if (e.datum !== last) { last = e.datum; const d = parseIso(e.datum), n = list.filter((x) => x.datum === e.datum).length;
+      html += `<div class="day-head"><h2>${WTAG[d.getDay()]}, ${deDate(e.datum)}</h2><span class="mono">KW ${isoWeek(d).week} · ${n} ${n === 1 ? "Eintrag" : "Einträge"}</span></div>`; }
     html += entryCard(e);
   }
   box.innerHTML = html; fillThumbs(box);
@@ -918,12 +1278,9 @@ function renderEintraege() {
 function renderKalender() {
   if (!S.calBaustelle || !S.baustellen.includes(S.calBaustelle)) S.calBaustelle = S.aktuell || S.baustellen[0] || "";
   $("#calBaustelle").innerHTML = S.baustellen.length ? baustelleOptions(S.calBaustelle) : `<option value="">Noch keine Baustelle</option>`;
-  const m = S.calMonth, y = m.getFullYear(), mo = m.getMonth();
-  $("#calTitle").textContent = `${MONATE[mo]} ${y}`;
-  const counts = {};
-  S.entries.filter((e) => e.baustelle === S.calBaustelle).forEach((e) => { counts[e.datum] = (counts[e.datum] || 0) + 1; });
-  const firstEntry = Object.keys(counts).sort()[0];
-  const today = isoDate(new Date());
+  const m = S.calMonth, y = m.getFullYear(), mo = m.getMonth(); $("#calTitle").textContent = `${MONATE[mo]} ${y}`;
+  const counts = {}; S.entries.filter((e) => e.baustelle === S.calBaustelle).forEach((e) => { counts[e.datum] = (counts[e.datum] || 0) + 1; });
+  const firstEntry = Object.keys(counts).sort()[0], today = isoDate(new Date());
   const start = new Date(y, mo, 1); start.setDate(1 - ((start.getDay() + 6) % 7));
   let html = `<span></span>` + ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map((d) => `<span class="wd">${d}</span>`).join("");
   const d = new Date(start);
@@ -938,123 +1295,166 @@ function renderKalender() {
       d.setDate(d.getDate() + 1);
     }
   }
-  $("#calGrid").innerHTML = html;
-  renderDayPanel();
+  $("#calGrid").innerHTML = html; renderDayPanel();
 }
 async function renderDayPanel() {
-  const p = $("#dayPanel"), day = S.calDay, b = S.calBaustelle;
+  const p = $("#dayPanel"), day = S.calDay, b = S.calBaustelle, d = parseIso(day), kw = isoWeek(d), wk = weekKey(day), days = weekDays(day);
   const list = S.entries.filter((e) => e.baustelle === b && e.datum === day).sort((x, y) => x.ts.localeCompare(y.ts));
-  const d = parseIso(day), w = await kvGet(`wetter:${b}|${day}`, null);
-  p.innerHTML = `<div class="row"><h2 class="grow">${WTAG[d.getDay()]}, ${deDate(day)}</h2><span class="mono" style="font-size:12px;color:var(--ink-2)">KW ${isoWeek(d).week}</span></div>
+  const weekN = S.entries.filter((e) => e.baustelle === b && days.includes(e.datum)).length;
+  const w = await kvGet(`wetter:${b}|${day}`, null);
+  const isWeek = S.scope === "woche", sigKey = isWeek ? wk : day, sigs = await kvGet(`sig:${b}|${sigKey}`, []);
+  const has = isWeek ? weekN : list.length;
+  const anyRoh = S.entries.some((e) => e.baustelle === b && (isWeek ? days.includes(e.datum) : e.datum === day) && e.textRoh);
+  p.innerHTML = `<div class="row"><h2 class="grow">${WTAG[d.getDay()]}, ${deDate(day)}</h2><span class="mono" style="font-size:12px;color:var(--ink-2)">KW ${kw.week}</span></div>
     <p class="hint">${w ? `Wetter: ${w.temp != null ? w.temp + " °C, " : ""}${esc(w.text || "")}` : "Kein Wetter gespeichert"}</p>
-    ${list.length ? `<div>${list.map((e) => `<div class="mini"><span class="mono">${nrText(e.nr)} · ${hhmm(e.ts)}</span><span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie])}</span><p>${esc(e.text.length > 90 ? e.text.slice(0, 90) + " …" : e.text)}</p></div>`).join("")}</div>
-      <button class="btn primary block" type="button" id="pdfBtn">Tagesbericht als PDF</button><div id="pdfOut"></div>`
-      : `<div class="empty"><strong>Keine Einträge an diesem Tag</strong>Wähle einen markierten Tag im Kalender.</div>`}`;
+    ${list.length ? `<div>${list.map((e) => `<div class="mini"><span class="mono">${nrText(e.nr)} · ${hhmm(e.ts)}</span><span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie])}</span><p>${esc(e.text.length > 90 ? e.text.slice(0, 90) + " …" : e.text)}</p></div>`).join("")}</div>` : `<p class="hint">Keine Einträge an diesem Tag.</p>`}
+    <div class="row" style="border-top:1px solid var(--line);padding-top:12px"><span class="label grow">Bericht</span>
+      <div class="seg" role="group" aria-label="Berichtsart"><button type="button" data-scope="tag" aria-pressed="${!isWeek}">Tag</button><button type="button" data-scope="woche" aria-pressed="${isWeek}">Woche KW ${kw.week}</button></div></div>
+    <div class="checks">
+      <label class="switch"><input type="checkbox" id="repRoh"${S.rep.roh ? " checked" : ""}${anyRoh ? "" : " disabled"}> Originaltexte (Diktat) einblenden${anyRoh ? "" : ' <span class="hint">· keine KI-Einträge</span>'}</label>
+      ${S.opts.personal ? `<label class="switch"><input type="checkbox" id="repPers"${S.rep.personal ? " checked" : ""}> Personal und Firmen aufnehmen</label>` : ""}
+      ${S.opts.sig ? `<label class="switch"><input type="checkbox" id="repSig"${S.rep.sig ? " checked" : ""}> Unterschriftenfeld anhängen</label>` : ""}
+    </div>
+    ${S.opts.sig && S.rep.sig ? `<div class="stack"><div class="sigs">${sigs.map((s) => `<div class="sig"><img src="${s.bild}" alt="Unterschrift ${esc(s.name)}"><strong style="font-size:14px">${esc(s.name)}</strong><span>${esc(s.rolle || "")} · ${hhmm(s.zeit)}</span><button class="btn quiet small danger" type="button" data-delsig="${s.id}">Entfernen</button></div>`).join("")}</div>
+      <div class="row"><button class="btn small" type="button" id="addSig"${has ? "" : " disabled"}>Unterschrift hinzufügen</button></div>${sigs.length ? "" : `<p class="hint">Ohne digitale Unterschrift enthält das PDF leere Felder zum Unterschreiben auf Papier.</p>`}</div>` : ""}
+    ${has ? `<button class="btn primary block" type="button" id="pdfBtn">${isWeek ? `Wochenbericht KW ${kw.week} als PDF` : "Tagesbericht als PDF"}</button>` : `<div class="empty"><strong>${isWeek ? "Keine Einträge in dieser Woche" : "Kein Tagesbericht möglich"}</strong>Wähle einen markierten Tag im Kalender.</div>`}
+    <div id="pdfOut"></div>`;
   const btn = $("#pdfBtn");
   if (btn) btn.addEventListener("click", async () => {
-    btn.disabled = true; btn.textContent = "PDF wird erstellt …";
+    const label = btn.textContent; btn.disabled = true; btn.textContent = "PDF wird erstellt …";
+    const o = { roh: S.rep.roh, personal: S.opts.personal && S.rep.personal, sig: S.opts.sig && S.rep.sig };
     try {
-      const blob = await dayReport(b, day);
-      if (!blob) return;
-      const name = `Tagesbericht_${safeName(b)}_${day}.pdf`;
+      const blob = isWeek ? await weekReport(b, day, o) : await dayReport(b, day, o); if (!blob) return;
+      const name = isWeek ? `Wochenbericht_${safeName(b)}_${wk}.pdf` : `Tagesbericht_${safeName(b)}_${day}.pdf`;
       let up = "";
-      if (DBX.connected && list.every((e) => !e.beispiel)) {
-        try { await DBX.upload(`/${safeName(b)}/Berichte/${name}`, blob); up = `<p class="hint" style="color:var(--ok)">In Dropbox gespeichert unter /${esc(safeName(b))}/Berichte/</p>`; }
+      if (DBX.connected && b !== DEMO) {
+        try { await DBX.upload(`/${safeName(b)}/Berichte/${name}`, blob); if (isWeek) await kvSet(`wb:${b}|${wk}`, true); up = `<p class="hint" style="color:var(--ok)">In Dropbox gespeichert unter /${esc(safeName(b))}/Berichte/</p>`; }
         catch (e) { up = `<p class="err-text">Upload in Dropbox fehlgeschlagen. Das PDF ist trotzdem erstellt.</p>`; }
       }
       const url = URL.createObjectURL(blob);
-      $("#pdfOut").innerHTML = `<div class="row" style="margin-top:8px"><a class="btn" href="${url}" target="_blank" rel="noopener">PDF öffnen</a><a class="btn quiet" href="${url}" download="${esc(name)}">Herunterladen</a></div>${up}
-        ${HOSTED ? "" : `<p class="hint">In dieser Vorschau sind Downloads gesperrt. In der installierten Version öffnet sich das PDF normal.</p>`}`;
-    } catch (e) { toast("PDF konnte nicht erstellt werden."); }
-    finally { btn.disabled = false; btn.textContent = "Tagesbericht als PDF"; }
+      $("#pdfOut").innerHTML = `<div class="row" style="margin-top:8px"><a class="btn" href="${url}" target="_blank" rel="noopener">PDF öffnen</a><a class="btn quiet" href="${url}" download="${esc(name)}">Herunterladen</a></div>${up}${HOSTED ? "" : `<p class="hint">In dieser Vorschau sind Downloads gesperrt. In der installierten Version öffnet sich das PDF normal.</p>`}`;
+    } catch (e) { console.error(e); toast("PDF konnte nicht erstellt werden."); }
+    finally { btn.disabled = false; btn.textContent = label; }
   });
 }
-function renderEinstellungen() {
-  const box = $("#dbxBox");
-  if (!HOSTED) {
-    box.innerHTML = `<p class="note">Diese Vorschau läuft in einer geschützten Umgebung ohne Zugriff auf Dropbox, Standort und Kamera-Upload ins Netz. Einträge bleiben hier nur in diesem Browser. Für Dropbox die App wie in der Anleitung auf GitHub Pages veröffentlichen.</p>`;
-  } else if (DBX.connected) {
-    box.innerHTML = `<dl class="kv"><dt>Status</dt><dd style="color:var(--ok)">Verbunden</dd><dt>Zielordner</dt><dd>Dropbox / Apps / (Name deiner Dropbox-App)</dd><dt>Offen</dt><dd>${S.entries.filter((e) => !e.synced && !e.beispiel).length} Einträge</dd></dl>
-      ${S.sync.state === "error" ? `<p class="err-text">${esc(S.sync.msg)}</p>` : ""}
-      <div class="row"><button class="btn small" type="button" id="dbxSync">Jetzt hochladen</button><button class="btn small" type="button" id="dbxImport">Einträge anderer Geräte laden</button><button class="btn quiet small danger" type="button" id="dbxOff">Trennen</button></div>`;
-  } else {
-    box.innerHTML = `<p class="hint">Einmalig in der Dropbox App Console eine App mit Zugriff „App folder“ anlegen und diese Adresse als Redirect URI eintragen:</p>
-      <div class="code" id="redirUri">${esc(DBX.redirectUri())}</div>
-      <label class="label" for="dbxKey">App key</label>
-      <div class="row"><input type="text" id="dbxKey" class="grow" value="${esc(DBX.key)}" placeholder="z. B. a1b2c3d4e5f6g7h" autocomplete="off" spellcheck="false"><button class="btn small" type="button" id="dbxConnect">Verbinden</button></div>
-      <p class="err-text" id="dbxErr" hidden></p>`;
+function bauStats(b) { const n = S.entries.filter((e) => e.baustelle === b).length, m = meta(b); return `${n} Einträge · ${m.plaene.length} Pläne · ${m.kontakte.length} Kontakte`; }
+function renderBaustellen() {
+  const v = $("#bView");
+  if (!S.bDetail || !S.baustellen.includes(S.bDetail)) {
+    S.bDetail = null;
+    v.innerHTML = `<div class="banner" data-demo-banner ${S.entries.some((e) => e.beispiel) ? "" : "hidden"}><span>Die Baustelle „Beispiel“ enthält Beispieldaten zum Ausprobieren.</span><button class="btn small" type="button" data-remove-demo>Beispieldaten entfernen</button></div>
+      <h2 style="font-size:26px">Baustellen</h2>
+      ${S.baustellen.length ? `<div class="blist">${S.baustellen.map((b) => `<button type="button" class="bitem" data-bopen="${esc(b)}"><span class="nm">${esc(b)}</span><span class="mono">${bauStats(b).replace(/ · /g, "<br>")}</span></button>`).join("")}</div>` : `<div class="empty"><strong>Noch keine Baustelle</strong>Lege unten deine erste Baustelle an.</div>`}
+      <div class="card"><label class="label" for="bNew">Neue Baustelle</label><div class="row"><input type="text" id="bNew" class="grow" placeholder="Wohnanlage Müllerstraße 12" autocomplete="off"><button class="btn small" type="button" id="bNewOk">Anlegen</button></div><p class="err-text" id="bNewErr" hidden></p></div>`;
+    return;
   }
-  $("#baustellenList").innerHTML = S.baustellen.length ? S.baustellen.map((b) => {
-    const n = S.entries.filter((e) => e.baustelle === b).length;
-    return `<div class="mini"><p class="grow">${esc(b)}</p><span class="mono">${n} ${n === 1 ? "Eintrag" : "Einträge"}</span></div>`;
-  }).join("") : `<p class="hint">Noch keine Baustelle. Neue Baustellen legst du unter „Erfassen“ an.</p>`;
-  $("#autoWetter").checked = S.autoWetter;
-  const demo = S.entries.some((e) => e.beispiel);
-  $("#removeDemoBtn").hidden = !demo;
-  $("#dataInfo").innerHTML = `<dt>Einträge</dt><dd>${S.entries.filter((e) => !e.beispiel).length}${demo ? " (plus Beispiele)" : ""}</dd>
-    <dt>Speicher</dt><dd>${DB.persistent ? "Im Browser dieses Geräts" : "Nur bis zum Schließen der Seite"}</dd>
-    <dt>Fotos</dt><dd>auf max. 1600 px verkleinert, JPEG</dd>`;
+  const b = S.bDetail, m = meta(b), plans = plansOf(b), ed = S.bEdit, cf = S.bConfirm;
+  const planForm = ed && ed.type === "plan" && !ed.key ? `<div class="form"><div class="two wrap"><input type="text" id="pName" list="geschossListe" placeholder="Geschoss, z. B. EG" aria-label="Plan-Bezeichnung"><button class="btn" type="button" id="pPick">Datei wählen (PDF oder Bild)</button></div>
+      <datalist id="geschossListe">${GESCHOSSE.map((g) => `<option value="${g}">`).join("")}</datalist><p class="hint">Bei PDF-Plänen wird die erste Seite übernommen. Pro Geschoss eine Datei.</p><p class="err-text" id="pErr" hidden></p><div class="row"><button class="btn quiet small" type="button" data-bcancel>Abbrechen</button></div></div>` : "";
+  const contactForm = (k) => `<div class="form" data-cform="${k ? k.id : ""}"><input type="text" id="cFirma" value="${esc(k && k.firma)}" placeholder="Firma oder Person" aria-label="Firma">
+      <div class="two wrap"><input type="text" id="cGewerk" value="${esc(k && k.gewerk)}" placeholder="Gewerk, z. B. Elektro" aria-label="Gewerk"><input type="text" id="cPerson" value="${esc(k && k.person)}" placeholder="Ansprechpartner" aria-label="Ansprechpartner"></div>
+      <div class="two wrap"><input type="tel" id="cTel" value="${esc(k && k.tel)}" placeholder="Telefon" aria-label="Telefon" autocomplete="off"><input type="email" id="cMail" value="${esc(k && k.mail)}" placeholder="E-Mail" aria-label="E-Mail" autocomplete="off"></div>
+      <input type="text" id="cNotiz" value="${esc(k && k.notiz)}" placeholder="Notiz, z. B. Polier ab 7:00 vor Ort" aria-label="Notiz">
+      <p class="err-text" id="cErr" hidden></p><div class="row"><button class="btn small" type="button" id="cSave">${k ? "Änderung speichern" : "Kontakt speichern"}</button><button class="btn quiet small" type="button" data-bcancel>Abbrechen</button></div></div>`;
+  v.innerHTML = `<div class="row"><button class="btn quiet small" type="button" id="bBack">‹ Alle Baustellen</button></div>
+    <div class="row"><h2 class="grow" style="font-size:26px">${esc(b)}</h2>${b === DEMO ? '<span class="tag beispiel">Beispiel</span>' : ""}</div>
+    <p class="hint">${bauStats(b)}</p>
+    <div class="card"><div class="row"><h2 class="grow">Pläne</h2>${ed && ed.type === "plan" && !ed.key ? "" : `<button class="btn small" type="button" id="pAdd">Plan hinzufügen</button>`}</div>
+      ${S.opts.plaene ? "" : `<p class="note">Pläne und Pins sind unter Optionen ausgeschaltet.</p>`}
+      ${planForm}
+      ${plans.length ? `<div>${plans.map((p) => `<div class="plan-row"><div class="pthumb"><img data-plan="${esc(b)}|${p.key}" alt="Vorschau ${esc(p.name)}"></div>
+        <div class="info"><span class="floor">${esc(p.name)}</span><span class="hint">Version ${p.version} · ${deDate(isoDate(new Date(p.datum)))}${p.datei && p.datei !== "Beispiel" ? " · " + esc(p.datei) : ""}</span>
+        <span class="hint">${S.entries.filter((e) => e.pin && e.pin.planKey === p.key).length} Pins</span>
+        ${cf === p.key ? `<div class="confirm">Plan ${esc(p.name)} löschen? Pins darauf werden nicht mehr angezeigt. <button class="btn small danger" type="button" data-pdelyes="${p.key}">Löschen</button><button class="btn quiet small" type="button" data-bcancel>Behalten</button></div>`
+          : `<div class="row"><button class="btn small" type="button" data-pview="${p.key}">Ansehen</button><button class="btn small" type="button" data-pupd="${p.key}">Neue Version</button><button class="btn quiet small danger" type="button" data-pdel="${p.key}">Löschen</button></div>`}</div></div>`).join("")}</div>`
+        : (ed && ed.type === "plan" ? "" : `<p class="hint">Noch keine Pläne. Lade z. B. die Grundrisse EG, 1.OG und 2.OG als PDF hoch, dann kannst du Einträge darauf verorten.</p>`)}
+      <p class="hint">„Neue Version“ ersetzt den Plan. Bestehende Pins behalten ihre Position, prüfe sie bei geänderten Grundrissen.</p></div>
+    <div class="card"><div class="row"><h2 class="grow">Firmen und Kontakte</h2>${ed && ed.type === "contact" && !ed.id ? "" : `<button class="btn small" type="button" id="cAdd">Kontakt hinzufügen</button>`}</div>
+      ${ed && ed.type === "contact" && !ed.id ? contactForm(null) : ""}
+      ${m.kontakte.length ? `<div>${[...m.kontakte].sort((a, c) => (a.gewerk || "").localeCompare(c.gewerk || "") || a.firma.localeCompare(c.firma)).map((k) => ed && ed.type === "contact" && ed.id === k.id ? contactForm(k) : `<div class="contact"><div class="info">
+          <span class="firm">${esc(k.firma)}</span>${k.gewerk || k.person ? `<span class="sub">${[k.gewerk, k.person].filter(Boolean).map(esc).join(" · ")}</span>` : ""}
+          ${k.tel ? `<span class="sub">Tel. <a href="tel:${esc(k.tel.replace(/[^\d+]/g, ""))}">${esc(k.tel)}</a></span>` : ""}${k.mail ? `<span class="sub"><a href="mailto:${esc(k.mail)}">${esc(k.mail)}</a></span>` : ""}${k.notiz ? `<span class="sub">${esc(k.notiz)}</span>` : ""}
+          ${cf === k.id ? `<div class="confirm">Kontakt löschen? <button class="btn small danger" type="button" data-cdelyes="${k.id}">Löschen</button><button class="btn quiet small" type="button" data-bcancel>Behalten</button></div>` : ""}</div>
+          ${cf === k.id ? "" : `<div class="row"><button class="btn quiet small" type="button" data-cedit="${k.id}">Bearbeiten</button><button class="btn quiet small danger" type="button" data-cdel="${k.id}">Löschen</button></div>`}</div>`).join("")}</div>`
+        : (ed && ed.type === "contact" ? "" : `<p class="hint">Hinterlege hier alle Firmen und Personen der Baustelle. Sie stehen dann beim Erfassen von Personal zur Auswahl und die KI erkennt ihre Namen.</p>`)}
+      ${HOSTED ? "" : `<p class="hint">Telefon- und Mail-Links funktionieren in der installierten App, in dieser Vorschau nicht immer.</p>`}</div>`;
+  fillThumbs(v);
+}
+function renderOptionen() {
+  const box = $("#dbxBox");
+  if (!HOSTED) box.innerHTML = `<p class="note">Diese Vorschau läuft in einer geschützten Umgebung ohne Zugriff auf Dropbox, KI und Standort. Einträge bleiben hier nur in diesem Browser. Für die volle Funktion die App wie in der Anleitung auf GitHub Pages veröffentlichen.</p>`;
+  else if (DBX.connected) box.innerHTML = `<dl class="kv"><dt>Status</dt><dd style="color:var(--ok)">Verbunden</dd><dt>Zielordner</dt><dd>Dropbox / Apps / (Name deiner Dropbox-App)</dd><dt>Offen</dt><dd>${S.entries.filter((e) => !e.synced && !e.beispiel).length} Einträge</dd></dl>
+      ${S.sync.state === "error" ? `<p class="err-text">${esc(S.sync.msg)}</p>` : ""}<div class="row"><button class="btn small" type="button" id="dbxSync">Jetzt hochladen</button><button class="btn small" type="button" id="dbxImport">Einträge anderer Geräte laden</button><button class="btn quiet small danger" type="button" id="dbxOff">Trennen</button></div>`;
+  else box.innerHTML = `<p class="hint">Einmalig in der Dropbox App Console eine App mit Zugriff „App folder“ anlegen und diese Adresse als Redirect URI eintragen:</p><div class="code">${esc(DBX.redirectUri())}</div>
+      <label class="label" for="dbxKey">App key</label><div class="row"><input type="text" id="dbxKey" class="grow" value="${esc(DBX.key)}" placeholder="z. B. a1b2c3d4e5f6g7h" autocomplete="off" spellcheck="false"><button class="btn small" type="button" id="dbxConnect">Verbinden</button></div><p class="err-text" id="dbxErr" hidden></p>`;
+  $("#kiKey").value = S.ki.key; $("#kiModel").value = S.ki.model;
+  $("#optPersonal").checked = S.opts.personal; $("#optPlaene").checked = S.opts.plaene; $("#optSig").checked = S.opts.sig; $("#autoWetter").checked = S.opts.autoWetter;
+  const demo = S.entries.some((e) => e.beispiel); $("#removeDemoBtn").hidden = !demo; $("#loadDemoBtn").hidden = demo;
+  $("#dataInfo").innerHTML = `<dt>Einträge</dt><dd>${S.entries.filter((e) => !e.beispiel).length}${demo ? " (plus Beispiele)" : ""}</dd><dt>Speicher</dt><dd>${DB.persistent ? "Im Browser dieses Geräts" : "Nur bis zum Schließen der Seite"}</dd><dt>Fotos</dt><dd>auf max. 1600 px verkleinert, JPEG</dd><dt>Pläne</dt><dd>auf max. 2800 px gerendert</dd>`;
 }
 function render() {
   const v = currentView();
   document.querySelectorAll(".view[id^='v-']").forEach((s) => { s.hidden = s.id !== "v-" + v; });
   document.querySelectorAll(".nav a").forEach((a) => { if (a.dataset.view === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
-  const now = new Date();
-  $("#stamp").textContent = `KW ${isoWeek(now).week} · ${WTAG[now.getDay()].slice(0, 2)} ${pad(now.getDate())}.${pad(now.getMonth() + 1)}.`;
-  const demo = S.entries.some((e) => e.beispiel);
-  $("#demoBanner1").hidden = !demo; $("#demoBanner2").hidden = !demo;
+  const now = new Date(); $("#stamp").textContent = `KW ${isoWeek(now).week} · ${WTAG[now.getDay()].slice(0, 2)} ${pad(now.getDate())}.${pad(now.getMonth() + 1)}.`;
+  const demo = S.entries.some((e) => e.beispiel); document.querySelectorAll("[data-demo-banner]").forEach((x) => { x.hidden = !demo; });
   renderSyncPill();
-  if (v === "erfassen") renderErfassen();
-  if (v === "eintraege") renderEintraege();
-  if (v === "kalender") renderKalender();
-  if (v === "einstellungen") renderEinstellungen();
+  if (v === "erfassen") renderErfassen(); if (v === "eintraege") renderEintraege(); if (v === "kalender") renderKalender();
+  if (v === "baustellen") renderBaustellen(); if (v === "optionen") renderOptionen();
 }
 
 /* ---------- Ereignisse ---------- */
+async function addBaustelle(name, errEl) {
+  const v = name.trim(); errEl.hidden = true;
+  if (!v) { errEl.textContent = "Gib einen Namen für die Baustelle ein."; errEl.hidden = false; return false; }
+  if (S.baustellen.includes(v)) { errEl.textContent = "Diese Baustelle gibt es schon."; errEl.hidden = false; return false; }
+  S.baustellen.push(v); S.aktuell = v; await kvSet("baustellen", S.baustellen); await kvSet("aktuell", v); toast(`Baustelle „${v}“ angelegt.`); return true;
+}
+let planFileTarget = null;
 function bind() {
-  window.addEventListener("hashchange", () => { S.editId = null; S.confirmId = null; render(); window.scrollTo(0, 0); });
+  window.addEventListener("hashchange", () => { S.editId = null; S.confirmId = null; S.bEdit = null; S.bConfirm = null; render(); window.scrollTo(0, 0); });
   window.addEventListener("online", () => sync(false));
-  $("#syncPill").addEventListener("click", () => { if (DBX.connected) sync(true); else location.hash = "einstellungen"; });
+  $("#syncPill").addEventListener("click", () => { if (DBX.connected) sync(true); else location.hash = "optionen"; });
 
-  $("#baustelleSel").addEventListener("change", async (e) => { S.aktuell = e.target.value; await kvSet("aktuell", S.aktuell); });
+  $("#baustelleSel").addEventListener("change", async (e) => { readPersonalRows(); S.aktuell = e.target.value; S.draft.pin = null; await kvSet("aktuell", S.aktuell); renderErfassen(); });
   $("#neueBaustelleBtn").addEventListener("click", () => { const r = $("#neueBaustelleRow"); r.hidden = !r.hidden; if (!r.hidden) $("#neueBaustelleInput").focus(); });
-  const addB = async () => {
-    const v = $("#neueBaustelleInput").value.trim(), err = $("#baustelleErr");
-    err.hidden = true;
-    if (!v) { err.textContent = "Gib einen Namen für die Baustelle ein."; err.hidden = false; return; }
-    if (S.baustellen.includes(v)) { err.textContent = "Diese Baustelle gibt es schon."; err.hidden = false; return; }
-    S.baustellen.push(v); S.aktuell = v; await kvSet("baustellen", S.baustellen); await kvSet("aktuell", v);
-    $("#neueBaustelleInput").value = ""; $("#neueBaustelleRow").hidden = true; toast(`Baustelle „${v}“ angelegt.`); render();
-  };
+  const addB = async () => { if (await addBaustelle($("#neueBaustelleInput").value, $("#baustelleErr"))) { $("#neueBaustelleInput").value = ""; $("#neueBaustelleRow").hidden = true; S.draft.pin = null; render(); } };
   $("#neueBaustelleOk").addEventListener("click", addB);
   $("#neueBaustelleInput").addEventListener("keydown", (e) => { if (e.key === "Enter") addB(); });
-  $("#neueBaustelleInput").addEventListener("input", () => { $("#baustelleErr").hidden = true; });
-
   $("#katChips").addEventListener("click", (e) => { const b = e.target.closest("[data-kat]"); if (!b) return; S.draft.kat = b.dataset.kat; renderChips(); });
   $("#shootBtn").addEventListener("click", () => $("#camInput").click());
   $("#libBtn").addEventListener("click", () => $("#libInput").click());
   $("#camInput").addEventListener("change", (e) => { addPhotos([...e.target.files]); e.target.value = ""; });
   $("#libInput").addEventListener("change", (e) => { addPhotos([...e.target.files]); e.target.value = ""; });
-  $("#draftThumbs").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-rm]"); if (!b) return;
-    S.draft.fotos = S.draft.fotos.filter((p) => p.id !== b.dataset.rm); renderDraftThumbs();
-  });
-  $("#textInput").addEventListener("input", (e) => { $("#saveErr").hidden = true; kvSet("draftText", e.target.value); });
+  $("#draftThumbs").addEventListener("click", (e) => { const b = e.target.closest("[data-rm]"); if (!b) return; S.draft.fotos = S.draft.fotos.filter((p) => p.id !== b.dataset.rm); renderDraftThumbs(); });
+  $("#textInput").addEventListener("input", (e) => { $("#saveErr").hidden = true; $("#kiErr").hidden = true; kvSet("draftText", e.target.value); });
   $("#vortagBtn").addEventListener("click", vortag);
+  $("#kiBtn").addEventListener("click", kiStructure);
+  $("#rawRestore").addEventListener("click", () => { $("#textInput").value = S.draft.textRoh; S.draft.textRoh = null; S.draft.ki = null; renderErfassen(); toast("Originaltext wiederhergestellt."); });
+  $("#addPersonal").addEventListener("click", () => { readPersonalRows(); S.draft.personal.push({ firma: "", anzahl: "" }); renderPersonalRows(); const ins = document.querySelectorAll("#personalRows [data-f]"); ins[ins.length - 1].focus(); });
+  $("#personalRows").addEventListener("click", (e) => { const b = e.target.closest("[data-prm]"); if (!b) return; readPersonalRows(); S.draft.personal.splice(+b.dataset.prm, 1); renderPersonalRows(); });
+  $("#personalRows").addEventListener("input", () => {
+    readPersonalRows(); const n = S.draft.personal.filter((p) => p.firma).length;
+    $("#personalSum").textContent = n ? `(${n} ${n === 1 ? "Firma" : "Firmen"}, ${S.draft.personal.reduce((s, p) => s + (Number(p.anzahl) || 0), 0)} Pers.)` : "(optional)";
+  });
+  $("#pinCard").addEventListener("click", (e) => {
+    if (e.target.closest("#pinDel")) { S.draft.pin = null; renderPin(); return; }
+    if (e.target.closest("#pinEdit")) openPlanSheet({ mode: "pick", b: S.aktuell, pick: S.draft.pin ? { ...S.draft.pin } : null, key: S.draft.pin && S.draft.pin.planKey, onPick: (pin) => { S.draft.pin = pin; renderPin(); } });
+  });
   $("#saveBtn").addEventListener("click", async () => { const b = $("#saveBtn"); b.disabled = true; try { await saveEntry(); } finally { b.disabled = false; } });
 
   ["#fBaustelle", "#fKat"].forEach((s) => $(s).addEventListener("change", renderEintraege));
   $("#fText").addEventListener("input", renderEintraege);
+  $("#planViewBtn").addEventListener("click", () => { const b = $("#fBaustelle").value || S.aktuell; openPlanSheet({ mode: "view", b, entries: filteredEntries().filter((e) => e.baustelle === b) }); });
   $("#entryList").addEventListener("click", async (ev) => {
     const btn = ev.target.closest("[data-act]"); if (!btn) return;
     const id = btn.closest(".entry").dataset.id, e = S.entries.find((x) => x.id === id), act = btn.dataset.act;
+    if (act === "roh") { if (S.showRoh.has(id)) S.showRoh.delete(id); else S.showRoh.add(id); }
+    if (act === "pin") { openPlanSheet({ mode: "view", b: e.baustelle, key: e.pin.planKey, entries: [e], sel: e.id }); return; }
     if (act === "edit") { S.editId = id; S.confirmId = null; }
     if (act === "cancel") { S.editId = null; S.confirmId = null; }
     if (act === "del") { S.confirmId = id; S.editId = null; }
-    if (act === "del-yes") {
-      for (const f of e.fotos) await DB.del("photos", f.id);
-      await DB.del("entries", id); S.entries = S.entries.filter((x) => x.id !== id); S.confirmId = null; toast(`${nrText(e.nr)} gelöscht.`);
-    }
+    if (act === "del-yes") { for (const f of e.fotos) await DB.del("photos", f.id); await DB.del("entries", id); S.entries = S.entries.filter((x) => x.id !== id); S.confirmId = null; toast(`${nrText(e.nr)} gelöscht.`); }
     if (act === "save-edit") {
       const t = $("#edit-" + id).value.trim();
       if (t !== e.text) { if (!e.textOriginal) e.textOriginal = e.text; e.text = t; e.bearbeitet = new Date().toISOString(); e.synced = false; await DB.put("entries", e); toast(`${nrText(e.nr)} geändert.`); sync(false); }
@@ -1067,21 +1467,83 @@ function bind() {
   $("#calPrev").addEventListener("click", () => { S.calMonth = new Date(S.calMonth.getFullYear(), S.calMonth.getMonth() - 1, 1); renderKalender(); });
   $("#calNext").addEventListener("click", () => { S.calMonth = new Date(S.calMonth.getFullYear(), S.calMonth.getMonth() + 1, 1); renderKalender(); });
   $("#calGrid").addEventListener("click", (e) => { const b = e.target.closest("[data-day]"); if (!b) return; S.calDay = b.dataset.day; renderKalender(); });
+  $("#dayPanel").addEventListener("change", async (e) => {
+    const map = { repRoh: "roh", repPers: "personal", repSig: "sig" }; const k = map[e.target.id]; if (!k) return;
+    S.rep[k] = e.target.checked; await kvSet("rep", S.rep); renderDayPanel();
+  });
+  $("#dayPanel").addEventListener("click", async (e) => {
+    const sc = e.target.closest("[data-scope]"); if (sc) { S.scope = sc.dataset.scope; renderDayPanel(); return; }
+    if (e.target.closest("#addSig")) { const isW = S.scope === "woche"; openSig(S.calBaustelle, isW ? weekKey(S.calDay) : S.calDay, isW ? `Wochenbericht ${weekKey(S.calDay).replace("-", " ")}` : `Tagesbericht ${deDate(S.calDay)}`); return; }
+    const ds = e.target.closest("[data-delsig]");
+    if (ds) { const key = `sig:${S.calBaustelle}|${S.scope === "woche" ? weekKey(S.calDay) : S.calDay}`; await kvSet(key, (await kvGet(key, [])).filter((s) => s.id !== ds.dataset.delsig)); renderDayPanel(); }
+  });
 
-  $("#autoWetter").addEventListener("change", async (e) => { S.autoWetter = e.target.checked; await kvSet("autoWetter", S.autoWetter); });
+  $("#bView").addEventListener("click", async (e) => {
+    const t = e.target.closest("button"); if (!t) return; const b = S.bDetail;
+    if (t.dataset.bopen) { S.bDetail = t.dataset.bopen; S.bEdit = null; S.bConfirm = null; renderBaustellen(); window.scrollTo(0, 0); return; }
+    if (t.id === "bNewOk") { if (await addBaustelle($("#bNew").value, $("#bNewErr"))) { S.bDetail = S.aktuell; renderBaustellen(); } return; }
+    if (t.id === "bBack") { S.bDetail = null; S.bEdit = null; S.bConfirm = null; renderBaustellen(); return; }
+    if (t.hasAttribute("data-bcancel")) { S.bEdit = null; S.bConfirm = null; renderBaustellen(); return; }
+    if (t.id === "pAdd") { S.bEdit = { type: "plan" }; S.bConfirm = null; renderBaustellen(); $("#pName").focus(); return; }
+    if (t.id === "pPick") {
+      const name = $("#pName").value.trim(), er = $("#pErr"); er.hidden = true;
+      if (!name) { er.textContent = "Gib zuerst die Bezeichnung ein, z. B. EG oder 1.OG."; er.hidden = false; return; }
+      if (meta(b).plaene.some((p) => p.name.toLowerCase() === name.toLowerCase())) { er.textContent = `${name} gibt es schon. Nutze dort „Neue Version“.`; er.hidden = false; return; }
+      planFileTarget = { b, name }; $("#planFile").click(); return;
+    }
+    if (t.dataset.pupd) { planFileTarget = { b, key: t.dataset.pupd }; $("#planFile").click(); return; }
+    if (t.dataset.pview) { openPlanSheet({ mode: "view", b, key: t.dataset.pview, entries: S.entries.filter((x) => x.baustelle === b) }); return; }
+    if (t.dataset.pdel) { S.bConfirm = t.dataset.pdel; renderBaustellen(); return; }
+    if (t.dataset.pdelyes) { const m = meta(b), p = m.plaene.find((x) => x.key === t.dataset.pdelyes); await DB.del("photos", p.id); m.plaene = m.plaene.filter((x) => x !== p); await saveMeta(b); S.bConfirm = null; toast(`Plan ${p.name} gelöscht.`); renderBaustellen(); return; }
+    if (t.id === "cAdd") { S.bEdit = { type: "contact" }; S.bConfirm = null; renderBaustellen(); $("#cFirma").focus(); return; }
+    if (t.dataset.cedit) { S.bEdit = { type: "contact", id: t.dataset.cedit }; S.bConfirm = null; renderBaustellen(); return; }
+    if (t.dataset.cdel) { S.bConfirm = t.dataset.cdel; S.bEdit = null; renderBaustellen(); return; }
+    if (t.dataset.cdelyes) { const m = meta(b); m.kontakte = m.kontakte.filter((k) => k.id !== t.dataset.cdelyes); await saveMeta(b); S.bConfirm = null; toast("Kontakt gelöscht."); renderBaustellen(); return; }
+    if (t.id === "cSave") {
+      const firma = $("#cFirma").value.trim(), er = $("#cErr"); er.hidden = true;
+      if (!firma) { er.textContent = "Gib mindestens den Namen der Firma oder Person ein."; er.hidden = false; return; }
+      const data = { firma, gewerk: $("#cGewerk").value.trim(), person: $("#cPerson").value.trim(), tel: $("#cTel").value.trim(), mail: $("#cMail").value.trim(), notiz: $("#cNotiz").value.trim() };
+      const m = meta(b);
+      if (S.bEdit.id) Object.assign(m.kontakte.find((k) => k.id === S.bEdit.id), data); else m.kontakte.push({ id: uid(), ...data });
+      await saveMeta(b); S.bEdit = null; toast(`${firma} gespeichert.`); renderBaustellen();
+    }
+  });
+  $("#planFile").addEventListener("change", async (e) => {
+    const f = e.target.files[0]; e.target.value = ""; if (!f || !planFileTarget) return;
+    const tgt = planFileTarget; planFileTarget = null; toast("Plan wird eingelesen …");
+    try {
+      const r = await addOrUpdatePlan(tgt.b, tgt.name, f, tgt.key);
+      S.bEdit = null; toast(tgt.key ? `${r.plan.name}: Version ${r.plan.version} gespeichert.` : `Plan ${r.plan.name} gespeichert${r.pages > 1 ? ` (Seite 1 von ${r.pages})` : ""}.`); renderBaustellen();
+    } catch (err) { console.error(err); toast(/pdf/i.test(f.type) ? "PDF konnte nicht gelesen werden. Einmal mit Netz versuchen oder den Plan als Bild exportieren." : "Datei konnte nicht gelesen werden."); }
+  });
+
+  $("#planClose").addEventListener("click", closePlanSheet);
+  $("#planFloors").addEventListener("click", (e) => { const b = e.target.closest("[data-floor]"); if (!b) return; PV.key = b.dataset.floor; PV.sel = null; renderPlanSheet(true); });
+  $("#zoomIn").addEventListener("click", () => { PV.zoom = Math.min(4, PV.zoom + 1); renderPlanSheet(false); });
+  $("#zoomOut").addEventListener("click", () => { PV.zoom = Math.max(1, PV.zoom - 1); renderPlanSheet(false); });
+  $("#planWrap").addEventListener("click", (e) => {
+    const pe = e.target.closest("[data-pinentry]"); if (pe) { PV.sel = pe.dataset.pinentry; renderPlanSheet(false); return; }
+    if (PV.mode !== "pick") return;
+    const r = $("#planWrap").getBoundingClientRect();
+    PV.pick = { planKey: PV.key, x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) };
+    renderPlanSheet(false);
+  });
+  $("#planFoot").addEventListener("click", (e) => { if (e.target.closest("#pinOk") && PV.pick) { PV.onPick && PV.onPick({ ...PV.pick }); closePlanSheet(); toast("Pin übernommen."); } });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (!$("#planSheet").hidden) closePlanSheet(); if (!$("#sigSheet").hidden) $("#sigClose").click(); } });
+
+  const optMap = { optPersonal: "personal", optPlaene: "plaene", optSig: "sig", autoWetter: "autoWetter" };
+  Object.keys(optMap).forEach((id) => $("#" + id).addEventListener("change", async (e) => { S.opts[optMap[id]] = e.target.checked; await kvSet("opts", S.opts); }));
+  $("#kiSave").addEventListener("click", async () => { S.ki = { key: $("#kiKey").value.trim(), model: $("#kiModel").value.trim() || "gemini-2.5-flash" }; await kvSet("ki", S.ki); toast(S.ki.key ? "KI-Einstellungen gespeichert." : "Kein Schlüssel hinterlegt."); });
+  $("#kiClear").addEventListener("click", async () => { S.ki.key = ""; await kvSet("ki", S.ki); $("#kiKey").value = ""; toast("Schlüssel gelöscht."); });
   document.addEventListener("click", (e) => { if (e.target.closest("[data-remove-demo]")) removeDemo(); });
+  $("#loadDemoBtn").addEventListener("click", async () => { await seedDemo(); toast("Beispiel-Baustelle geladen."); render(); });
   $("#dbxBox").addEventListener("click", async (e) => {
     const t = e.target.closest("button"); if (!t) return;
-    if (t.id === "dbxConnect") {
-      const k = $("#dbxKey").value.trim();
-      if (!k) { const er = $("#dbxErr"); er.textContent = "Trage den App key aus der Dropbox App Console ein."; er.hidden = false; return; }
-      DBX.key = k; await kvSet("dbx:key", k); DBX.connect();
-    }
-    if (t.id === "dbxSync") sync(true);
-    if (t.id === "dbxImport") importRemote(true);
+    if (t.id === "dbxConnect") { const k = $("#dbxKey").value.trim(); if (!k) { const er = $("#dbxErr"); er.textContent = "Trage den App key aus der Dropbox App Console ein."; er.hidden = false; return; } DBX.key = k; await kvSet("dbx:key", k); DBX.connect(); }
+    if (t.id === "dbxSync") sync(true); if (t.id === "dbxImport") importRemote(true);
     if (t.id === "dbxOff") { await DBX.disconnect(); toast("Dropbox getrennt."); render(); }
   });
-  $("#dbxBox").addEventListener("input", (e) => { if (e.target.id === "dbxKey") $("#dbxErr").hidden = true; });
+  bindSig();
 }
 
 /* ---------- Start ---------- */
@@ -1090,16 +1552,21 @@ function bind() {
   S.entries = await DB.all("entries");
   S.baustellen = await kvGet("baustellen", []);
   S.aktuell = await kvGet("aktuell", "");
-  S.autoWetter = await kvGet("autoWetter", true);
-  if (!(await kvGet("seeded", false)) && !S.entries.length) await seedDemo();
+  S.opts = Object.assign(S.opts, await kvGet("opts", {}));
+  const oldW = await kvGet("autoWetter", null); if (oldW !== null && (await kvGet("opts", null)) === null) S.opts.autoWetter = oldW;
+  S.ki = Object.assign(S.ki, await kvGet("ki", {}));
+  S.rep = Object.assign(S.rep, await kvGet("rep", {}));
+  for (const b of S.baustellen) { const m = await kvGet("meta:" + b, null); if (m) S.meta[b] = m; }
+  if (S.baustellen.includes(DEMO) && (await kvGet("seedVersion", 1)) < SEED_VERSION) { await clearDemo(); await seedDemo(); }
+  else if (!(await kvGet("seeded", false)) && !S.entries.length) await seedDemo();
   if (S.aktuell && !S.baustellen.includes(S.aktuell)) S.aktuell = S.baustellen[0] || "";
   const now = new Date(); S.calMonth = new Date(now.getFullYear(), now.getMonth(), 1); S.calDay = isoDate(now);
   $("#textInput").value = await kvGet("draftText", "");
   await DBX.init();
   bind(); setupDictation(); render();
-  if (S.autoWetter) loadWeather(false);
+  if (S.opts.autoWetter) loadWeather(false);
   if ("serviceWorker" in navigator && HOSTED) navigator.serviceWorker.register("sw.js").catch(() => {});
-  if (DBX.connected) { await sync(false); importRemote(false); }
+  if (DBX.connected) { await sync(false); await importRemote(false); autoWeekReports(); }
 })();
 </script>
 </body>

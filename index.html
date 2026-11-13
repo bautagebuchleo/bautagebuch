@@ -236,6 +236,31 @@ details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bo
 .sig-pad { flex: 1; display: flex; flex-direction: column; gap: 10px; padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); overflow: auto; }
 .sig-pad canvas { width: 100%; height: 220px; background: #fff; border: 1px solid var(--line); border-radius: var(--r); touch-action: none; }
 
+.entry.clickable { cursor: pointer; }
+.entry.clickable:hover { border-color: var(--ink-3); }
+.thumb button.open { all: unset; display: block; width: 100%; height: 100%; cursor: zoom-in; }
+.thumb button.open:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.mini[data-open] { cursor: pointer; }
+.mini[data-open]:hover p { text-decoration: underline; }
+.sheet-body { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 14px; padding-block: 16px 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.sheet-body > * { max-width: 760px; width: 100%; margin: 0 auto; }
+.detail-text { font-size: 18px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+.detail-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.detail-photos .thumb { aspect-ratio: 4 / 3; }
+.snippet { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.snippet img { width: 160px; height: 160px; max-width: 100%; border-radius: 4px; border: 1px solid var(--line); background: #fff; object-fit: cover; }
+.lightbox { position: fixed; inset: 0; z-index: 70; background: #0d0f10; color: #f2f3f0; display: flex; flex-direction: column;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); color-scheme: dark; }
+.lb-bar { display: flex; align-items: center; gap: 8px; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.lb-bar .grow { font-family: var(--f-mono); font-size: 13px; color: #b9bdb8; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-btn { min-height: 44px; min-width: 44px; padding: 0 14px; border-radius: var(--r); border: 1px solid #3a3f42; background: #1b1f21; color: #f2f3f0; font-size: 16px; }
+.lb-btn:hover { background: #262b2e; }
+.lb-btn:disabled { opacity: .35; }
+.lb-scroll { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; touch-action: pan-x pan-y; }
+.lb-scroll.zoomed { display: block; }
+.lb-scroll img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; margin: auto; }
+.lb-scroll.zoomed img { max-width: none; max-height: none; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); z-index: 60; bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom, 0px));
   background: var(--ink); color: var(--panel); padding: 10px 16px; border-radius: var(--r); font-size: 15px; max-width: min(92vw, 520px); box-shadow: 0 6px 24px rgba(0,0,0,.18); }
 @media (min-width: 900px) { .toast { bottom: 24px; } }
@@ -430,6 +455,25 @@ details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bo
     <p class="err-text" id="sigErr" hidden></p>
   </div>
   <div class="sheet-foot"><button class="btn primary grow" type="button" id="sigOk">Unterschrift übernehmen</button></div>
+</div>
+
+<!-- Eintrag im Detail -->
+<div class="sheet" id="entrySheet" role="dialog" aria-modal="true" aria-labelledby="entryTitle" hidden>
+  <div class="sheet-head"><h2 id="entryTitle">Eintrag</h2><button class="btn small" type="button" id="entryClose">Schließen</button></div>
+  <div class="sheet-body" id="entryBody"></div>
+</div>
+
+<!-- Foto groß -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Foto" hidden>
+  <div class="lb-bar"><span class="grow" id="lbInfo"></span><button class="lb-btn" type="button" id="lbClose">Schließen</button></div>
+  <div class="lb-scroll" id="lbScroll"><img id="lbImg" alt=""></div>
+  <div class="lb-bar" style="justify-content:center">
+    <button class="lb-btn" type="button" id="lbPrev" aria-label="Vorheriges Foto">‹</button>
+    <button class="lb-btn" type="button" id="lbOut" aria-label="Verkleinern">−</button>
+    <span class="mono" id="lbZoom" style="min-width:56px;text-align:center;font-size:13px">100 %</span>
+    <button class="lb-btn" type="button" id="lbIn" aria-label="Vergrößern">+</button>
+    <button class="lb-btn" type="button" id="lbNext" aria-label="Nächstes Foto">›</button>
+  </div>
 </div>
 
 <input type="file" id="planFile" accept="application/pdf,image/*" hidden>
@@ -884,10 +928,10 @@ function openPlanSheet(opts) {
   const plans = plansOf(PV.b);
   if (!plans.length) { toast("Für diese Baustelle sind noch keine Pläne hinterlegt."); return; }
   if (!PV.key || !getPlan(PV.b, PV.key)) PV.key = (PV.pick && PV.pick.planKey) || plans[0].key;
-  $("#planSheet").hidden = false; document.body.classList.add("locked");
+  $("#planSheet").hidden = false; lock();
   renderPlanSheet(true);
 }
-function closePlanSheet() { $("#planSheet").hidden = true; document.body.classList.remove("locked"); }
+function closePlanSheet() { $("#planSheet").hidden = true; lock(); }
 async function renderPlanSheet(reloadImg) {
   const plans = plansOf(PV.b), p = getPlan(PV.b, PV.key);
   $("#planTitle").textContent = PV.mode === "pick" ? "Lage im Plan markieren" : `Pläne · ${PV.b}`;
@@ -911,7 +955,7 @@ async function renderPlanSheet(reloadImg) {
       <button class="btn small primary" type="button" id="pinOk"${PV.pick ? "" : " disabled"}>Pin übernehmen</button>`;
   } else {
     const e = PV.entries.find((x) => x.id === PV.sel);
-    foot.innerHTML = e ? `<div class="grow" style="min-width:0"><div class="entry-head"><span class="nr">${nrText(e.nr)}</span><span>${deDate(e.datum)} ${hhmm(e.ts)}</span><span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie])}</span></div><p class="entry-text" style="font-size:15px">${esc(e.text.length > 160 ? e.text.slice(0, 160) + " …" : e.text)}</p></div>`
+    foot.innerHTML = e ? `<div class="grow" style="min-width:0"><div class="entry-head"><span class="nr">${nrText(e.nr)}</span><span>${deDate(e.datum)} ${hhmm(e.ts)}</span><span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie])}</span></div><p class="entry-text" style="font-size:15px">${esc(e.text.length > 160 ? e.text.slice(0, 160) + " …" : e.text)}</p></div><button class="btn small" type="button" data-open="${e.id}">Details</button>`
       : `<span class="hint grow">${PV.entries.filter((x) => x.pin && x.pin.planKey === PV.key).length ? "Pin antippen für Details." : "Auf diesem Plan gibt es keine Pins für die aktuelle Auswahl."} Plan Version ${p.version} vom ${deDate(isoDate(new Date(p.datum)))}.</span>`;
   }
 }
@@ -921,7 +965,7 @@ const SIG = { ink: false, b: "", key: "", label: "" };
 function openSig(b, key, label) {
   Object.assign(SIG, { b, key, label, ink: false });
   $("#sigFor").textContent = `Für: ${label}`; $("#sigErr").hidden = true; $("#sigName").value = ""; $("#sigRole").value = "";
-  $("#sigSheet").hidden = false; document.body.classList.add("locked");
+  $("#sigSheet").hidden = false; lock();
   requestAnimationFrame(sigResize);
 }
 function sigResize() {
@@ -937,7 +981,7 @@ function bindSig() {
   c.addEventListener("pointermove", (ev) => { if (!down) return; const p = pt(ev), g = c.getContext("2d"); g.beginPath(); g.moveTo(...last); g.lineTo(...p); g.stroke(); last = p; SIG.ink = true; $("#sigErr").hidden = true; });
   ["pointerup", "pointercancel", "pointerleave"].forEach((t) => c.addEventListener(t, () => { down = false; }));
   $("#sigReset").addEventListener("click", sigResize);
-  $("#sigClose").addEventListener("click", () => { $("#sigSheet").hidden = true; document.body.classList.remove("locked"); });
+  $("#sigClose").addEventListener("click", () => { $("#sigSheet").hidden = true; lock(); });
   $("#sigOk").addEventListener("click", async () => {
     const name = $("#sigName").value.trim(), er = $("#sigErr");
     if (!name) { er.textContent = "Gib den Namen der unterschreibenden Person ein."; er.hidden = false; return; }
@@ -945,8 +989,124 @@ function bindSig() {
     const k = `sig:${SIG.b}|${SIG.key}`; const list = await kvGet(k, []);
     list.push({ id: uid(), name, rolle: $("#sigRole").value.trim(), bild: c.toDataURL("image/png"), zeit: new Date().toISOString() });
     await kvSet(k, list);
-    $("#sigSheet").hidden = true; document.body.classList.remove("locked"); toast("Unterschrift gespeichert."); renderDayPanel();
+    $("#sigSheet").hidden = true; lock(); toast("Unterschrift gespeichert."); renderDayPanel();
   });
+}
+
+/* ---------- Gemeinsame Hilfen für Fenster ---------- */
+function lock() { document.body.classList.toggle("locked", [...document.querySelectorAll(".sheet, .lightbox")].some((s) => !s.hidden)); }
+
+/* ---------- Foto groß (Lightbox) ---------- */
+const LB = { items: [], i: 0, zoom: 1 };
+async function openLightbox(items, i) {
+  LB.items = items; LB.i = i; LB.zoom = 1;
+  $("#lightbox").hidden = false; lock(); await showLightbox(); $("#lbClose").focus();
+}
+function closeLightbox() { $("#lightbox").hidden = true; lock(); }
+async function showLightbox() {
+  const it = LB.items[LB.i], img = $("#lbImg"), sc = $("#lbScroll");
+  img.removeAttribute("src"); img.alt = it.label || "Foto";
+  const url = it.url || (it.photo ? await photoUrl(it.photo) : null);
+  if (url) img.src = url; else img.alt = "Foto nicht verfügbar (noch nicht aus Dropbox geladen)";
+  $("#lbInfo").textContent = `${it.label || ""}${LB.items.length > 1 ? `  ·  ${LB.i + 1} / ${LB.items.length}` : ""}`;
+  $("#lbPrev").disabled = LB.i === 0; $("#lbNext").disabled = LB.i >= LB.items.length - 1;
+  $("#lbPrev").hidden = $("#lbNext").hidden = LB.items.length < 2;
+  applyZoom(); sc.scrollTo(0, 0);
+}
+function applyZoom(cx, cy) {
+  const sc = $("#lbScroll"), img = $("#lbImg");
+  const fx = cx != null ? (sc.scrollLeft + cx) / Math.max(1, sc.scrollWidth) : 0.5, fy = cy != null ? (sc.scrollTop + cy) / Math.max(1, sc.scrollHeight) : 0.5;
+  sc.classList.toggle("zoomed", LB.zoom > 1);
+  img.style.width = LB.zoom > 1 ? `${LB.zoom * sc.clientWidth}px` : "";
+  $("#lbZoom").textContent = LB.zoom * 100 + " %";
+  if (LB.zoom > 1) requestAnimationFrame(() => { sc.scrollLeft = fx * sc.scrollWidth - sc.clientWidth / 2; sc.scrollTop = fy * sc.scrollHeight - sc.clientHeight / 2; });
+}
+function bindLightbox() {
+  const sc = $("#lbScroll");
+  $("#lbClose").addEventListener("click", closeLightbox);
+  $("#lbPrev").addEventListener("click", () => { if (LB.i > 0) { LB.i--; LB.zoom = 1; showLightbox(); } });
+  $("#lbNext").addEventListener("click", () => { if (LB.i < LB.items.length - 1) { LB.i++; LB.zoom = 1; showLightbox(); } });
+  $("#lbIn").addEventListener("click", () => { LB.zoom = Math.min(4, LB.zoom + 1); applyZoom(); });
+  $("#lbOut").addEventListener("click", () => { LB.zoom = Math.max(1, LB.zoom - 1); applyZoom(); });
+  let sx = null, sy = 0, lastTap = 0, touchZoomAt = 0;
+  sc.addEventListener("dblclick", (e) => { if (Date.now() - touchZoomAt < 600) return; const r = sc.getBoundingClientRect(); LB.zoom = LB.zoom > 1 ? 1 : 3; applyZoom(e.clientX - r.left, e.clientY - r.top); });
+  sc.addEventListener("pointerdown", (e) => { sx = e.clientX; sy = e.clientY; });
+  sc.addEventListener("pointerup", (e) => {
+    if (sx === null) return; const dx = e.clientX - sx, dy = e.clientY - sy; sx = null;
+    if (LB.zoom === 1 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) { (dx < 0 ? $("#lbNext") : $("#lbPrev")).click(); return; }
+    if (e.pointerType === "touch" && Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+      const now = Date.now(); if (now - lastTap < 320) { const r = sc.getBoundingClientRect(); LB.zoom = LB.zoom > 1 ? 1 : 3; applyZoom(e.clientX - r.left, e.clientY - r.top); lastTap = 0; touchZoomAt = now; } else lastTap = now;
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if ($("#lightbox").hidden) return;
+    if (e.key === "ArrowLeft") $("#lbPrev").click(); if (e.key === "ArrowRight") $("#lbNext").click();
+  });
+}
+function entryPhotos(e) { return e.fotos.map((f, i) => ({ photo: f, label: `${nrText(e.nr)} · Foto ${i + 1} · ${deDate(e.datum)} ${hhmm(e.ts)}` })); }
+
+/* ---------- Eintrag im Detail ---------- */
+let detailId = null;
+function openEntry(id) { detailId = id; S.editId = null; S.confirmId = null; $("#entrySheet").hidden = false; lock(); renderEntrySheet(); $("#entryBody").scrollTo(0, 0); }
+function closeEntry() { detailId = null; S.editId = null; S.confirmId = null; $("#entrySheet").hidden = true; lock(); if (currentView() === "eintraege") renderEintraege(); }
+async function renderEntrySheet() {
+  const e = S.entries.find((x) => x.id === detailId); if (!e) { closeEntry(); return; }
+  const editing = S.editId === e.id, confirming = S.confirmId === e.id, plan = e.pin && getPlan(e.baustelle, e.pin.planKey), d = parseIso(e.datum);
+  $("#entryTitle").textContent = `${nrText(e.nr)} · ${KAT_LABEL[e.kategorie] || e.kategorie}`;
+  const rows = [
+    ["Baustelle", esc(e.baustelle)], ["Zeitpunkt", `${WTAG[d.getDay()]}, ${deDate(e.datum)}, ${hhmm(e.ts)} Uhr · KW ${isoWeek(d).week}`],
+    e.gewerk && ["Gewerk", esc(e.gewerk)], e.ortImBau && ["Ort im Bau", esc(e.ortImBau)],
+    e.wetter && e.wetter.text && ["Wetter", `${e.wetter.temp != null ? e.wetter.temp + " °C, " : ""}${esc(e.wetter.text)}${e.wetter.quelle ? ` <span class="hint">(${esc(e.wetter.quelle)})</span>` : ""}`],
+    e.personal && e.personal.length && ["Personal", e.personal.map((p) => `${esc(p.firma)}${p.anzahl ? ` · ${p.anzahl} Pers.` : ""}`).join("<br>")],
+    e.ort && ["Standort", `<span class="mono">${e.ort.lat.toFixed(4)}, ${e.ort.lon.toFixed(4)}</span>`],
+    e.ki && ["KI", `strukturiert mit ${esc(e.ki.modell)}`],
+    e.bearbeitet && ["Bearbeitet", `${deDate(isoDate(new Date(e.bearbeitet)))}, ${hhmm(e.bearbeitet)} Uhr`],
+    ["Speicher", e.beispiel ? "Beispieldaten" : e.synced ? "In Dropbox gesichert" : "Nur auf diesem Gerät, wartet auf Upload"]
+  ].filter(Boolean);
+  $("#entryBody").innerHTML = `<article class="entry detail" data-id="${e.id}" style="border:0;padding:0;background:transparent;gap:14px">
+    <div class="entry-head"><span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie] || e.kategorie)}</span>${e.beispiel ? '<span class="tag beispiel">Beispiel</span>' : ""}${e.ki ? '<span class="tag ki">KI-strukturiert</span>' : ""}</div>
+    ${editing ? `<textarea aria-label="Text bearbeiten" style="min-height:180px">${esc(e.text)}</textarea><div class="row"><button class="btn small" type="button" data-act="save-edit">Änderung speichern</button><button class="btn quiet small" type="button" data-act="cancel">Abbrechen</button></div><p class="hint">Der vorherige Text bleibt im Bericht vermerkt.</p>`
+      : `<p class="detail-text">${esc(e.text) || "<em>ohne Text</em>"}</p>`}
+    ${e.textRoh ? `<div class="raw"><span class="label">Originaltext (Diktat)</span><p>${esc(e.textRoh)}</p></div>` : ""}
+    ${e.textOriginal ? `<div class="raw"><span class="label">Text vor der Bearbeitung</span><p>${esc(e.textOriginal)}</p></div>` : ""}
+    ${e.fotos.length ? `<div class="stack"><span class="label">Fotos (${e.fotos.length}) · antippen zum Vergrößern</span><div class="detail-photos">${e.fotos.map((f, i) => `<div class="thumb"><button type="button" class="open" data-lb="${i}" aria-label="Foto ${i + 1} groß anzeigen"><img data-entry="${e.id}" data-photo="${f.id}" alt="Foto ${i + 1}"></button></div>`).join("")}</div></div>` : ""}
+    ${plan ? `<div class="stack"><span class="label">Lage im Plan</span><div class="snippet"><img id="snipImg" alt="Planausschnitt ${esc(plan.name)}"><div class="stack"><strong>Plan ${esc(plan.name)}</strong><span class="hint">Version ${plan.version}</span><button class="btn small" type="button" data-act="pin">Im Plan öffnen</button></div></div></div>` : ""}
+    <dl class="kv">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
+    ${confirming ? `<div class="confirm">Eintrag ${nrText(e.nr)} löschen? <button class="btn small danger" type="button" data-act="del-yes">Löschen</button><button class="btn quiet small" type="button" data-act="cancel">Behalten</button></div>`
+      : editing ? "" : `<div class="row"><button class="btn" type="button" data-act="edit">Text bearbeiten</button>${!e.synced || e.beispiel ? `<button class="btn quiet danger" type="button" data-act="del">Löschen</button>` : ""}</div>`}
+  </article>`;
+  fillThumbs($("#entryBody"));
+  if (plan) { const sn = await planSnippet(e.baustelle, e.pin).catch(() => null); const im = $("#snipImg"); if (sn && im) im.src = sn.url; }
+}
+async function entryClick(ev) {
+  const art = ev.target.closest(".entry"); if (!art) return;
+  const id = art.dataset.id, e = S.entries.find((x) => x.id === id); if (!e) return;
+  const lb = ev.target.closest("[data-lb]");
+  if (lb) { openLightbox(entryPhotos(e), +lb.dataset.lb); return; }
+  const btn = ev.target.closest("[data-act]");
+  if (!btn) {
+    if (art.classList.contains("clickable") && !ev.target.closest("textarea, a, button, .confirm")) openEntry(id);
+    return;
+  }
+  const act = btn.dataset.act;
+  if (act === "roh") { if (S.showRoh.has(id)) S.showRoh.delete(id); else S.showRoh.add(id); }
+  if (act === "pin") { openPlanSheet({ mode: "view", b: e.baustelle, key: e.pin.planKey, entries: [e], sel: e.id }); return; }
+  if (act === "edit") { S.editId = id; S.confirmId = null; }
+  if (act === "cancel") { S.editId = null; S.confirmId = null; }
+  if (act === "del") { S.confirmId = id; S.editId = null; }
+  if (act === "del-yes") {
+    for (const f of e.fotos) await DB.del("photos", f.id);
+    await DB.del("entries", id); S.entries = S.entries.filter((x) => x.id !== id); S.confirmId = null; toast(`${nrText(e.nr)} gelöscht.`);
+    if (detailId === id) { closeEntry(); return; }
+  }
+  if (act === "save-edit") {
+    const t = art.querySelector("textarea").value.trim();
+    if (t !== e.text) { if (!e.textOriginal) e.textOriginal = e.text; e.text = t; e.bearbeitet = new Date().toISOString(); e.synced = false; await DB.put("entries", e); toast(`${nrText(e.nr)} geändert.`); sync(false); }
+    S.editId = null;
+  }
+  if (detailId) renderEntrySheet();
+  if (currentView() === "eintraege") renderEintraege();
+  renderSyncPill();
 }
 
 /* ---------- PDF-Berichte ---------- */
@@ -1207,7 +1367,7 @@ function renderSyncPill() {
 function baustelleOptions(sel, withAll) { return (withAll ? `<option value="">Alle Baustellen</option>` : "") + S.baustellen.map((b) => `<option value="${esc(b)}"${b === sel ? " selected" : ""}>${esc(b)}</option>`).join(""); }
 function renderChips() { $("#katChips").innerHTML = KATS.map(([id, l]) => `<button type="button" class="chip" data-kat="${id}" aria-pressed="${S.draft.kat === id}">${l}</button>`).join(""); }
 function renderDraftThumbs() {
-  $("#draftThumbs").innerHTML = S.draft.fotos.map((p, i) => `<div class="thumb"><img src="${p.url}" alt="Foto ${i + 1}"><button type="button" class="x" data-rm="${p.id}" aria-label="Foto ${i + 1} entfernen">×</button></div>`).join("");
+  $("#draftThumbs").innerHTML = S.draft.fotos.map((p, i) => `<div class="thumb"><button type="button" class="open" data-dlb="${i}" aria-label="Foto ${i + 1} groß anzeigen"><img src="${p.url}" alt="Foto ${i + 1}"></button><button type="button" class="x" data-rm="${p.id}" aria-label="Foto ${i + 1} entfernen">×</button></div>`).join("");
   $("#shootLabel").textContent = S.draft.fotos.length ? "Weiteres Foto" : "Foto aufnehmen";
 }
 function renderPersonalRows() {
@@ -1239,11 +1399,11 @@ function entryCard(e) {
   const kat = `<span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie] || e.kategorie)}</span>`;
   const sync = e.beispiel ? `<span class="tag beispiel sync">Beispiel</span>` : e.synced ? `<span class="sync" style="color:var(--ok)">● Dropbox</span>` : `<span class="sync" style="color:var(--warn)">● wartet</span>`;
   const plan = e.pin && getPlan(e.baustelle, e.pin.planKey);
-  const thumbs = e.fotos.length ? `<div class="thumbs">${e.fotos.map((f, i) => `<div class="thumb"><img data-entry="${e.id}" data-photo="${f.id}" alt="Foto ${i + 1} zu ${nrText(e.nr)}"></div>`).join("")}</div>` : "";
+  const thumbs = e.fotos.length ? `<div class="thumbs">${e.fotos.map((f, i) => `<div class="thumb"><button type="button" class="open" data-lb="${i}" aria-label="Foto ${i + 1} zu ${nrText(e.nr)} groß anzeigen"><img data-entry="${e.id}" data-photo="${f.id}" alt="Foto ${i + 1} zu ${nrText(e.nr)}"></button></div>`).join("")}</div>` : "";
   const meta1 = [e.gewerk && esc(e.gewerk), e.ortImBau && esc(e.ortImBau), e.wetter && e.wetter.text ? `${e.wetter.temp != null ? e.wetter.temp + " °C, " : ""}${esc(e.wetter.text)}` : "", e.bearbeitet ? `bearbeitet ${deDate(isoDate(new Date(e.bearbeitet)))} ${hhmm(e.bearbeitet)}` : ""].filter(Boolean).join(" · ");
   const pers = e.personal && e.personal.length ? `<p class="entry-meta">Personal: ${esc(personalText(e.personal))}</p>` : "";
   const roh = e.textRoh && S.showRoh.has(e.id) ? `<div class="raw"><span class="label">Originaltext (Diktat)</span><p>${esc(e.textRoh)}</p></div>` : "";
-  return `<article class="entry" data-id="${e.id}">
+  return `<article class="entry${editing ? "" : " clickable"}" data-id="${e.id}" title="Antippen für Details">
     <div class="entry-head"><span class="nr">${nrText(e.nr)}</span><span>${hhmm(e.ts)}</span>${kat}${e.textRoh ? `<button type="button" class="tag ki" data-act="roh" aria-pressed="${S.showRoh.has(e.id)}">KI · Original ${S.showRoh.has(e.id) ? "ausblenden" : "zeigen"}</button>` : ""}${plan ? `<button type="button" class="tag" data-act="pin">Plan ${esc(plan.name)}</button>` : ""}${S.baustellen.length > 1 && !$("#fBaustelle").value ? `<span>${esc(e.baustelle)}</span>` : ""}${sync}</div>
     ${editing ? `<textarea id="edit-${e.id}" aria-label="Text bearbeiten">${esc(e.text)}</textarea><div class="row"><button class="btn small" type="button" data-act="save-edit">Änderung speichern</button><button class="btn quiet small" type="button" data-act="cancel">Abbrechen</button></div><p class="hint">Der vorherige Text bleibt im Bericht vermerkt.</p>`
       : `<p class="entry-text">${esc(e.text) || "<em>ohne Text</em>"}</p>`}
@@ -1307,7 +1467,7 @@ async function renderDayPanel() {
   const anyRoh = S.entries.some((e) => e.baustelle === b && (isWeek ? days.includes(e.datum) : e.datum === day) && e.textRoh);
   p.innerHTML = `<div class="row"><h2 class="grow">${WTAG[d.getDay()]}, ${deDate(day)}</h2><span class="mono" style="font-size:12px;color:var(--ink-2)">KW ${kw.week}</span></div>
     <p class="hint">${w ? `Wetter: ${w.temp != null ? w.temp + " °C, " : ""}${esc(w.text || "")}` : "Kein Wetter gespeichert"}</p>
-    ${list.length ? `<div>${list.map((e) => `<div class="mini"><span class="mono">${nrText(e.nr)} · ${hhmm(e.ts)}</span><span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie])}</span><p>${esc(e.text.length > 90 ? e.text.slice(0, 90) + " …" : e.text)}</p></div>`).join("")}</div>` : `<p class="hint">Keine Einträge an diesem Tag.</p>`}
+    ${list.length ? `<div>${list.map((e) => `<div class="mini" data-open="${e.id}" role="button" tabindex="0" aria-label="${nrText(e.nr)} öffnen"><span class="mono">${nrText(e.nr)} · ${hhmm(e.ts)}${e.fotos.length ? ` · ${e.fotos.length} Foto${e.fotos.length > 1 ? "s" : ""}` : ""}</span><span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie])}</span><p>${esc(e.text.length > 90 ? e.text.slice(0, 90) + " …" : e.text)}</p></div>`).join("")}</div>` : `<p class="hint">Keine Einträge an diesem Tag.</p>`}
     <div class="row" style="border-top:1px solid var(--line);padding-top:12px"><span class="label grow">Bericht</span>
       <div class="seg" role="group" aria-label="Berichtsart"><button type="button" data-scope="tag" aria-pressed="${!isWeek}">Tag</button><button type="button" data-scope="woche" aria-pressed="${isWeek}">Woche KW ${kw.week}</button></div></div>
     <div class="checks">
@@ -1446,22 +1606,14 @@ function bind() {
   ["#fBaustelle", "#fKat"].forEach((s) => $(s).addEventListener("change", renderEintraege));
   $("#fText").addEventListener("input", renderEintraege);
   $("#planViewBtn").addEventListener("click", () => { const b = $("#fBaustelle").value || S.aktuell; openPlanSheet({ mode: "view", b, entries: filteredEntries().filter((e) => e.baustelle === b) }); });
-  $("#entryList").addEventListener("click", async (ev) => {
-    const btn = ev.target.closest("[data-act]"); if (!btn) return;
-    const id = btn.closest(".entry").dataset.id, e = S.entries.find((x) => x.id === id), act = btn.dataset.act;
-    if (act === "roh") { if (S.showRoh.has(id)) S.showRoh.delete(id); else S.showRoh.add(id); }
-    if (act === "pin") { openPlanSheet({ mode: "view", b: e.baustelle, key: e.pin.planKey, entries: [e], sel: e.id }); return; }
-    if (act === "edit") { S.editId = id; S.confirmId = null; }
-    if (act === "cancel") { S.editId = null; S.confirmId = null; }
-    if (act === "del") { S.confirmId = id; S.editId = null; }
-    if (act === "del-yes") { for (const f of e.fotos) await DB.del("photos", f.id); await DB.del("entries", id); S.entries = S.entries.filter((x) => x.id !== id); S.confirmId = null; toast(`${nrText(e.nr)} gelöscht.`); }
-    if (act === "save-edit") {
-      const t = $("#edit-" + id).value.trim();
-      if (t !== e.text) { if (!e.textOriginal) e.textOriginal = e.text; e.text = t; e.bearbeitet = new Date().toISOString(); e.synced = false; await DB.put("entries", e); toast(`${nrText(e.nr)} geändert.`); sync(false); }
-      S.editId = null;
-    }
-    renderEintraege(); renderSyncPill();
-  });
+  $("#entryList").addEventListener("click", entryClick);
+  $("#entryBody").addEventListener("click", entryClick);
+  $("#entryClose").addEventListener("click", closeEntry);
+  $("#draftThumbs").addEventListener("click", (e) => { const b = e.target.closest("[data-dlb]"); if (!b) return; openLightbox(S.draft.fotos.map((p, i) => ({ url: p.url, label: `Neues Foto ${i + 1}` })), +b.dataset.dlb); });
+  $("#dayPanel").addEventListener("click", (e) => { const m = e.target.closest("[data-open]"); if (m) openEntry(m.dataset.open); });
+  $("#dayPanel").addEventListener("keydown", (e) => { const m = e.target.closest("[data-open]"); if (m && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openEntry(m.dataset.open); } });
+  $("#planFoot").addEventListener("click", (e) => { const m = e.target.closest("[data-open]"); if (m) { closePlanSheet(); openEntry(m.dataset.open); } });
+  bindLightbox();
 
   $("#calBaustelle").addEventListener("change", (e) => { S.calBaustelle = e.target.value; renderKalender(); });
   $("#calPrev").addEventListener("click", () => { S.calMonth = new Date(S.calMonth.getFullYear(), S.calMonth.getMonth() - 1, 1); renderKalender(); });
@@ -1529,7 +1681,13 @@ function bind() {
     renderPlanSheet(false);
   });
   $("#planFoot").addEventListener("click", (e) => { if (e.target.closest("#pinOk") && PV.pick) { PV.onPick && PV.onPick({ ...PV.pick }); closePlanSheet(); toast("Pin übernommen."); } });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (!$("#planSheet").hidden) closePlanSheet(); if (!$("#sigSheet").hidden) $("#sigClose").click(); } });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (!$("#lightbox").hidden) { closeLightbox(); return; }
+    if (!$("#planSheet").hidden) { closePlanSheet(); return; }
+    if (!$("#sigSheet").hidden) { $("#sigClose").click(); return; }
+    if (!$("#entrySheet").hidden) closeEntry();
+  });
 
   const optMap = { optPersonal: "personal", optPlaene: "plaene", optSig: "sig", autoWetter: "autoWetter" };
   Object.keys(optMap).forEach((id) => $("#" + id).addEventListener("change", async (e) => { S.opts[optMap[id]] = e.target.checked; await kvSet("opts", S.opts); }));

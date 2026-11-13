@@ -219,6 +219,7 @@ details.opt > div { display: flex; flex-direction: column; gap: 10px; padding-bo
 .sheet { position: fixed; inset: 0; z-index: 50; background: var(--panel); display: flex; flex-direction: column;
   padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 @media (min-width: 900px) { .sheet { inset: 4vh 8vw; border-radius: 10px; box-shadow: 0 0 0 100vmax var(--scrim); } }
+#planSheet, #sigSheet { z-index: 55; }
 .sheet-head, .sheet-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .sheet-head { border-bottom: 1px solid var(--line); }
@@ -699,17 +700,17 @@ const DBX = {
 };
 function photoPath(e, i) {
   const t = new Date(e.ts);
-  return `/${safeName(e.baustelle)}/${weekKey(e.datum)}/${nrText(e.nr)}_${e.datum}_${pad(t.getHours())}${pad(t.getMinutes())}_${e.kategorie}_${i + 1}.jpg`;
+  return `/${safeName(e.baustelle)}/${weekKey(e.datum)}/${nrText(e.nr)}_${e.datum}_${pad(t.getHours())}${pad(t.getMinutes())}_${i + 1}_${e.fotos[i].id.slice(-5)}.jpg`;
 }
 function serialize(e) {
   return { id: e.id, nr: e.nr, nummer: nrText(e.nr), baustelle: e.baustelle, zeitpunkt: e.ts, datum: e.datum, kategorie: e.kategorie,
-    text: e.text, textRoh: e.textRoh || null, ki: e.ki || null, textOriginal: e.textOriginal || null, bearbeitet: e.bearbeitet || null,
+    text: e.text, textRoh: e.textRoh || null, ki: e.ki || null, textOriginal: e.textOriginal || null, bearbeitet: e.bearbeitet || null, aenderungen: e.aenderungen || [],
     gewerk: e.gewerk || null, ortImBau: e.ortImBau || null, personal: e.personal || [], pin: e.pin || null,
     wetter: e.wetter || null, ort: e.ort || null, fotos: e.fotos.map((f) => ({ id: f.id, path: f.path, w: f.w, h: f.h })) };
 }
 function deserialize(x, b) {
   return { id: x.id, nr: x.nr, baustelle: b, ts: x.zeitpunkt, datum: x.datum, kategorie: x.kategorie, text: x.text, textRoh: x.textRoh, ki: x.ki,
-    textOriginal: x.textOriginal, bearbeitet: x.bearbeitet, gewerk: x.gewerk, ortImBau: x.ortImBau, personal: x.personal || [], pin: x.pin,
+    textOriginal: x.textOriginal, bearbeitet: x.bearbeitet, aenderungen: x.aenderungen || [], gewerk: x.gewerk, ortImBau: x.ortImBau, personal: x.personal || [], pin: x.pin,
     wetter: x.wetter, ort: x.ort, synced: true, remote: true, fotos: (x.fotos || []).map((f) => ({ id: f.id || uid(), path: f.path, w: f.w, h: f.h })) };
 }
 async function loadRemote(b) { const blob = await DBX.download(`/${safeName(b)}/eintraege.json`); if (!blob) return null; try { return JSON.parse(await blob.text()); } catch (e) { return null; } }
@@ -1046,13 +1047,54 @@ function bindLightbox() {
 function entryPhotos(e) { return e.fotos.map((f, i) => ({ photo: f, label: `${nrText(e.nr)} · Foto ${i + 1} · ${deDate(e.datum)} ${hhmm(e.ts)}` })); }
 
 /* ---------- Eintrag im Detail ---------- */
-let detailId = null;
-function openEntry(id) { detailId = id; S.editId = null; S.confirmId = null; $("#entrySheet").hidden = false; lock(); renderEntrySheet(); $("#entryBody").scrollTo(0, 0); }
-function closeEntry() { detailId = null; S.editId = null; S.confirmId = null; $("#entrySheet").hidden = true; lock(); if (currentView() === "eintraege") renderEintraege(); }
+let detailId = null, ED = null;
+function openEntry(id, edit) { detailId = id; S.editId = null; S.confirmId = null; ED = null; $("#entrySheet").hidden = false; lock(); if (edit) startEdit(S.entries.find((x) => x.id === id)); renderEntrySheet(); $("#entryBody").scrollTo(0, 0); }
+function closeEntry() {
+  if (ED) ED.newFotos.forEach((p) => URL.revokeObjectURL(p.url));
+  detailId = null; S.editId = null; S.confirmId = null; ED = null; $("#entrySheet").hidden = true; lock(); if (currentView() === "eintraege") renderEintraege();
+}
+function startEdit(e) {
+  S.editId = e.id; S.confirmId = null;
+  ED = { kat: e.kategorie, text: e.text, gewerk: e.gewerk || "", ortImBau: e.ortImBau || "", wTemp: e.wetter && e.wetter.temp != null ? String(e.wetter.temp) : "", wText: (e.wetter && e.wetter.text) || "",
+    dayWeather: true, personal: (e.personal || []).map((p) => ({ ...p })), pin: e.pin ? { ...e.pin } : null, newFotos: [], removeFotos: new Set() };
+}
+function readEditForm() {
+  if (!ED || !$("#edText")) return;
+  ED.text = $("#edText").value; ED.gewerk = $("#edGewerk").value; ED.ortImBau = $("#edOrt").value;
+  ED.wTemp = $("#edTemp").value; ED.wText = $("#edWetter").value; ED.dayWeather = $("#edDayW") ? $("#edDayW").checked : ED.dayWeather;
+  ED.personal = [...document.querySelectorAll("#edPersonal .prow")].map((r) => ({ firma: r.querySelector("[data-f]").value.trim(), anzahl: r.querySelector("[data-a]").value === "" ? "" : Number(r.querySelector("[data-a]").value) }));
+}
+function editFormHtml(e) {
+  const plan = ED.pin && getPlan(e.baustelle, ED.pin.planKey), plans = plansOf(e.baustelle);
+  const fotos = e.fotos.filter((f) => !ED.removeFotos.has(f.id));
+  return `<div class="stack"><span class="label">Kategorie</span><div class="chips">${KATS.map(([id, l]) => `<button type="button" class="chip" data-edkat="${id}" aria-pressed="${ED.kat === id}">${l}</button>`).join("")}</div></div>
+    <div class="stack"><label class="label" for="edText">Beschreibung</label><textarea id="edText" style="min-height:160px">${esc(ED.text)}</textarea>
+      ${e.textRoh ? `<p class="hint">Der Originaltext (Diktat) bleibt unverändert gespeichert.</p>` : ""}</div>
+    <div class="two wrap"><div class="stack"><label class="label" for="edGewerk">Gewerk</label><input type="text" id="edGewerk" value="${esc(ED.gewerk)}" placeholder="Trockenbau"></div>
+      <div class="stack"><label class="label" for="edOrt">Ort im Bau</label><input type="text" id="edOrt" value="${esc(ED.ortImBau)}" placeholder="2. OG, Achse C/3"></div></div>
+    <div class="stack"><span class="label">Wetter</span><div class="weather"><div class="unit"><input type="number" id="edTemp" inputmode="decimal" value="${esc(ED.wTemp)}" placeholder="8" aria-label="Temperatur in Grad Celsius"><span>°C</span></div>
+      <input type="text" id="edWetter" list="wetterListe" value="${esc(ED.wText)}" placeholder="Bewölkt, trocken" aria-label="Wetterlage"></div>
+      <label class="switch"><input type="checkbox" id="edDayW"${ED.dayWeather ? " checked" : ""}> Auch als Tageswetter für den Bericht vom ${deDate(e.datum)} übernehmen</label></div>
+    ${S.opts.personal ? `<div class="stack"><span class="label">Personal und Firmen</span><div class="stack" id="edPersonal">${ED.personal.map((p, i) => `<div class="prow"><input type="text" data-f list="edFirmen" value="${esc(p.firma)}" placeholder="Firma" aria-label="Firma ${i + 1}"><input type="number" data-a inputmode="numeric" min="0" value="${esc(p.anzahl)}" placeholder="Pers." aria-label="Personen ${i + 1}"><button class="btn quiet small" type="button" data-edprm="${i}" aria-label="Zeile entfernen">×</button></div>`).join("")}</div>
+      <datalist id="edFirmen">${meta(e.baustelle).kontakte.map((k) => `<option value="${esc(k.firma)}">`).join("")}</datalist>
+      <div class="row"><button class="btn small" type="button" data-edact="addp">Firma hinzufügen</button></div></div>` : ""}
+    ${S.opts.plaene ? `<div class="stack"><span class="label">Lage im Plan</span>${plans.length ? `<div class="pinbox">${plan ? `<span class="dotpin"></span><span class="where grow">Plan ${esc(plan.name)}</span><button class="btn small" type="button" data-edact="pin">Ändern</button><button class="btn quiet small danger" type="button" data-edact="unpin">Entfernen</button>`
+      : `<button class="btn" type="button" data-edact="pin">Auf Plan markieren</button><span class="hint">${plans.map((x) => esc(x.name)).join(" · ")}</span>`}</div>` : `<p class="hint">Für diese Baustelle sind noch keine Pläne hinterlegt. Das geht unter Baustellen.</p>`}</div>` : ""}
+    <div class="stack"><span class="label">Fotos</span>
+      <div class="thumbs">${fotos.map((f) => `<div class="thumb"><img data-entry="${e.id}" data-photo="${f.id}" alt="Foto"><button type="button" class="x" data-edrmf="${f.id}" aria-label="Foto entfernen">×</button></div>`).join("")}${ED.newFotos.map((p) => `<div class="thumb"><img src="${p.url}" alt="Neues Foto"><button type="button" class="x" data-edrmn="${p.id}" aria-label="Neues Foto entfernen">×</button></div>`).join("")}</div>
+      <div class="row"><button class="btn small" type="button" data-edact="cam">Foto aufnehmen</button><button class="btn quiet small" type="button" data-edact="lib">Aus der Mediathek</button></div></div>
+    <p class="err-text" id="edErr" hidden></p>
+    <div class="row"><button class="btn primary grow" type="button" data-act="save-edit">Änderungen speichern</button><button class="btn" type="button" data-act="cancel">Abbrechen</button></div>
+    <p class="hint">Die Änderung wird mit Datum im Eintrag und im Bericht vermerkt. Ein vorheriger Text bleibt erhalten.</p>`;
+}
 async function renderEntrySheet() {
   const e = S.entries.find((x) => x.id === detailId); if (!e) { closeEntry(); return; }
-  const editing = S.editId === e.id, confirming = S.confirmId === e.id, plan = e.pin && getPlan(e.baustelle, e.pin.planKey), d = parseIso(e.datum);
-  $("#entryTitle").textContent = `${nrText(e.nr)} · ${KAT_LABEL[e.kategorie] || e.kategorie}`;
+  const editing = S.editId === e.id && ED, confirming = S.confirmId === e.id, plan = e.pin && getPlan(e.baustelle, e.pin.planKey), d = parseIso(e.datum);
+  $("#entryTitle").textContent = `${nrText(e.nr)} · ${editing ? "bearbeiten" : KAT_LABEL[e.kategorie] || e.kategorie}`;
+  if (editing) {
+    $("#entryBody").innerHTML = `<article class="entry detail" data-id="${e.id}" style="border:0;padding:0;background:transparent;gap:16px">${editFormHtml(e)}</article>`;
+    fillThumbs($("#entryBody")); return;
+  }
   const rows = [
     ["Baustelle", esc(e.baustelle)], ["Zeitpunkt", `${WTAG[d.getDay()]}, ${deDate(e.datum)}, ${hhmm(e.ts)} Uhr · KW ${isoWeek(d).week}`],
     e.gewerk && ["Gewerk", esc(e.gewerk)], e.ortImBau && ["Ort im Bau", esc(e.ortImBau)],
@@ -1060,29 +1102,84 @@ async function renderEntrySheet() {
     e.personal && e.personal.length && ["Personal", e.personal.map((p) => `${esc(p.firma)}${p.anzahl ? ` · ${p.anzahl} Pers.` : ""}`).join("<br>")],
     e.ort && ["Standort", `<span class="mono">${e.ort.lat.toFixed(4)}, ${e.ort.lon.toFixed(4)}</span>`],
     e.ki && ["KI", `strukturiert mit ${esc(e.ki.modell)}`],
-    e.bearbeitet && ["Bearbeitet", `${deDate(isoDate(new Date(e.bearbeitet)))}, ${hhmm(e.bearbeitet)} Uhr`],
+    e.bearbeitet && ["Bearbeitet", `${deDate(isoDate(new Date(e.bearbeitet)))}, ${hhmm(e.bearbeitet)} Uhr${(e.aenderungen || []).length ? `<br><span class="hint">${(e.aenderungen || []).map((a) => `${deDate(isoDate(new Date(a.zeit)))} ${hhmm(a.zeit)}: ${esc(a.felder.join(", "))}`).join("<br>")}</span>` : ""}`],
     ["Speicher", e.beispiel ? "Beispieldaten" : e.synced ? "In Dropbox gesichert" : "Nur auf diesem Gerät, wartet auf Upload"]
   ].filter(Boolean);
   $("#entryBody").innerHTML = `<article class="entry detail" data-id="${e.id}" style="border:0;padding:0;background:transparent;gap:14px">
     <div class="entry-head"><span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie] || e.kategorie)}</span>${e.beispiel ? '<span class="tag beispiel">Beispiel</span>' : ""}${e.ki ? '<span class="tag ki">KI-strukturiert</span>' : ""}</div>
-    ${editing ? `<textarea aria-label="Text bearbeiten" style="min-height:180px">${esc(e.text)}</textarea><div class="row"><button class="btn small" type="button" data-act="save-edit">Änderung speichern</button><button class="btn quiet small" type="button" data-act="cancel">Abbrechen</button></div><p class="hint">Der vorherige Text bleibt im Bericht vermerkt.</p>`
-      : `<p class="detail-text">${esc(e.text) || "<em>ohne Text</em>"}</p>`}
+    <p class="detail-text">${esc(e.text) || "<em>ohne Text</em>"}</p>
     ${e.textRoh ? `<div class="raw"><span class="label">Originaltext (Diktat)</span><p>${esc(e.textRoh)}</p></div>` : ""}
     ${e.textOriginal ? `<div class="raw"><span class="label">Text vor der Bearbeitung</span><p>${esc(e.textOriginal)}</p></div>` : ""}
     ${e.fotos.length ? `<div class="stack"><span class="label">Fotos (${e.fotos.length}) · antippen zum Vergrößern</span><div class="detail-photos">${e.fotos.map((f, i) => `<div class="thumb"><button type="button" class="open" data-lb="${i}" aria-label="Foto ${i + 1} groß anzeigen"><img data-entry="${e.id}" data-photo="${f.id}" alt="Foto ${i + 1}"></button></div>`).join("")}</div></div>` : ""}
     ${plan ? `<div class="stack"><span class="label">Lage im Plan</span><div class="snippet"><img id="snipImg" alt="Planausschnitt ${esc(plan.name)}"><div class="stack"><strong>Plan ${esc(plan.name)}</strong><span class="hint">Version ${plan.version}</span><button class="btn small" type="button" data-act="pin">Im Plan öffnen</button></div></div></div>` : ""}
     <dl class="kv">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
     ${confirming ? `<div class="confirm">Eintrag ${nrText(e.nr)} löschen? <button class="btn small danger" type="button" data-act="del-yes">Löschen</button><button class="btn quiet small" type="button" data-act="cancel">Behalten</button></div>`
-      : editing ? "" : `<div class="row"><button class="btn" type="button" data-act="edit">Text bearbeiten</button>${!e.synced || e.beispiel ? `<button class="btn quiet danger" type="button" data-act="del">Löschen</button>` : ""}</div>`}
+      : `<div class="row"><button class="btn primary" type="button" data-act="edit">Eintrag bearbeiten</button>${!e.synced || e.beispiel ? `<button class="btn quiet danger" type="button" data-act="del">Löschen</button>` : ""}</div>`}
   </article>`;
   fillThumbs($("#entryBody"));
   if (plan) { const sn = await planSnippet(e.baustelle, e.pin).catch(() => null); const im = $("#snipImg"); if (sn && im) im.src = sn.url; }
+}
+const edInput = document.createElement("input"); edInput.type = "file"; edInput.accept = "image/*"; edInput.multiple = true;
+edInput.addEventListener("change", async () => {
+  const files = [...edInput.files]; edInput.value = ""; if (!ED) return; readEditForm();
+  for (const f of files) { try { const c = await compress(f); ED.newFotos.push({ id: uid(), blob: c.blob, w: c.w, h: c.h, url: URL.createObjectURL(c.blob) }); } catch (er) { toast("Foto konnte nicht gelesen werden."); } }
+  renderEntrySheet();
+});
+async function saveEdit(e) {
+  readEditForm();
+  const err = $("#edErr"); err.hidden = true;
+  const text = ED.text.trim(), keptFotos = e.fotos.filter((f) => !ED.removeFotos.has(f.id));
+  if (!text && !keptFotos.length && !ED.newFotos.length) { err.textContent = "Ein Eintrag braucht einen Text oder ein Foto."; err.hidden = false; return false; }
+  const changed = [];
+  if (text !== e.text) { changed.push("Text"); if (!e.textOriginal) e.textOriginal = e.text; e.text = text; }
+  if (ED.kat !== e.kategorie) { changed.push("Kategorie"); e.kategorie = ED.kat; }
+  const gw = ED.gewerk.trim() || null, oi = ED.ortImBau.trim() || null;
+  if (gw !== (e.gewerk || null)) { changed.push("Gewerk"); e.gewerk = gw; }
+  if (oi !== (e.ortImBau || null)) { changed.push("Ort im Bau"); e.ortImBau = oi; }
+  const wt = ED.wText.trim(), tp = ED.wTemp === "" ? null : Number(ED.wTemp);
+  const oldW = e.wetter || {};
+  if (wt !== (oldW.text || "") || tp !== (oldW.temp ?? null)) {
+    changed.push("Wetter");
+    e.wetter = (wt || tp !== null) ? { temp: tp, text: wt, quelle: "manuell (nachträglich)" } : null;
+  }
+  if (ED.dayWeather && e.wetter && changed.includes("Wetter")) await kvSet(`wetter:${e.baustelle}|${e.datum}`, e.wetter);
+  const pers = ED.personal.filter((p) => p.firma);
+  if (JSON.stringify(pers) !== JSON.stringify(e.personal || [])) { changed.push("Personal"); e.personal = pers; }
+  if (JSON.stringify(ED.pin) !== JSON.stringify(e.pin || null)) { changed.push(ED.pin ? "Lage im Plan" : "Pin entfernt"); e.pin = ED.pin; }
+  if (ED.removeFotos.size || ED.newFotos.length) {
+    changed.push("Fotos");
+    for (const id of ED.removeFotos) { await DB.del("photos", id); urlCache.delete(id); }
+    e.fotos = keptFotos;
+    for (const p of ED.newFotos) { await DB.put("photos", { id: p.id, blob: p.blob, w: p.w, h: p.h }); e.fotos.push({ id: p.id, w: p.w, h: p.h, path: null }); urlCache.set(p.id, p.url); }
+    ED.newFotos = [];
+  }
+  if (!changed.length) { toast("Keine Änderungen."); return true; }
+  const now = new Date().toISOString();
+  e.bearbeitet = now; e.aenderungen = [...(e.aenderungen || []), { zeit: now, felder: changed }]; e.synced = false;
+  await DB.put("entries", e); toast(`${nrText(e.nr)} geändert: ${changed.join(", ")}.`); sync(false);
+  return true;
 }
 async function entryClick(ev) {
   const art = ev.target.closest(".entry"); if (!art) return;
   const id = art.dataset.id, e = S.entries.find((x) => x.id === id); if (!e) return;
   const lb = ev.target.closest("[data-lb]");
   if (lb) { openLightbox(entryPhotos(e), +lb.dataset.lb); return; }
+  if (ED && S.editId === id) {
+    const k = ev.target.closest("[data-edkat]"); if (k) { readEditForm(); ED.kat = k.dataset.edkat; renderEntrySheet(); return; }
+    const rp = ev.target.closest("[data-edprm]"); if (rp) { readEditForm(); ED.personal.splice(+rp.dataset.edprm, 1); renderEntrySheet(); return; }
+    const rf = ev.target.closest("[data-edrmf]"); if (rf) { readEditForm(); ED.removeFotos.add(rf.dataset.edrmf); renderEntrySheet(); return; }
+    const rn = ev.target.closest("[data-edrmn]"); if (rn) { readEditForm(); ED.newFotos = ED.newFotos.filter((p) => p.id !== rn.dataset.edrmn); renderEntrySheet(); return; }
+    const ea = ev.target.closest("[data-edact]");
+    if (ea) {
+      readEditForm(); const a = ea.dataset.edact;
+      if (a === "addp") { ED.personal.push({ firma: "", anzahl: "" }); await renderEntrySheet(); const ins = document.querySelectorAll("#edPersonal [data-f]"); ins[ins.length - 1].focus(); }
+      if (a === "unpin") { ED.pin = null; renderEntrySheet(); }
+      if (a === "pin") openPlanSheet({ mode: "pick", b: e.baustelle, pick: ED.pin ? { ...ED.pin } : null, key: ED.pin && ED.pin.planKey, onPick: (pin) => { if (ED) { ED.pin = pin; renderEntrySheet(); } } });
+      if (a === "cam") { edInput.setAttribute("capture", "environment"); edInput.click(); }
+      if (a === "lib") { edInput.removeAttribute("capture"); edInput.click(); }
+      return;
+    }
+  }
   const btn = ev.target.closest("[data-act]");
   if (!btn) {
     if (art.classList.contains("clickable") && !ev.target.closest("textarea, a, button, .confirm")) openEntry(id);
@@ -1091,21 +1188,18 @@ async function entryClick(ev) {
   const act = btn.dataset.act;
   if (act === "roh") { if (S.showRoh.has(id)) S.showRoh.delete(id); else S.showRoh.add(id); }
   if (act === "pin") { openPlanSheet({ mode: "view", b: e.baustelle, key: e.pin.planKey, entries: [e], sel: e.id }); return; }
-  if (act === "edit") { S.editId = id; S.confirmId = null; }
-  if (act === "cancel") { S.editId = null; S.confirmId = null; }
-  if (act === "del") { S.confirmId = id; S.editId = null; }
+  if (act === "edit") { if (detailId !== id) { openEntry(id, true); return; } startEdit(e); }
+  if (act === "cancel") { if (ED) ED.newFotos.forEach((p) => URL.revokeObjectURL(p.url)); S.editId = null; S.confirmId = null; ED = null; }
+  if (act === "del") { S.confirmId = id; S.editId = null; ED = null; }
   if (act === "del-yes") {
     for (const f of e.fotos) await DB.del("photos", f.id);
     await DB.del("entries", id); S.entries = S.entries.filter((x) => x.id !== id); S.confirmId = null; toast(`${nrText(e.nr)} gelöscht.`);
     if (detailId === id) { closeEntry(); return; }
   }
-  if (act === "save-edit") {
-    const t = art.querySelector("textarea").value.trim();
-    if (t !== e.text) { if (!e.textOriginal) e.textOriginal = e.text; e.text = t; e.bearbeitet = new Date().toISOString(); e.synced = false; await DB.put("entries", e); toast(`${nrText(e.nr)} geändert.`); sync(false); }
-    S.editId = null;
-  }
-  if (detailId) renderEntrySheet();
+  if (act === "save-edit") { if (!(await saveEdit(e))) return; S.editId = null; ED = null; }
+  if (detailId) { await renderEntrySheet(); if (act === "edit" || act === "save-edit") $("#entryBody").scrollTo(0, 0); }
   if (currentView() === "eintraege") renderEintraege();
+  if (currentView() === "kalender") renderDayPanel();
   renderSyncPill();
 }
 
@@ -1182,7 +1276,7 @@ async function pdfEntries(ctx, b, list, o) {
     } else if (e.ki) { doc.setFontSize(8); ctx.color("ink3"); ctx.ensure(4.5); doc.text("Text KI-gestützt formuliert, Originaldiktat liegt vor.", M, ctx.y); ctx.y += 4.2; }
     if (e.bearbeitet) {
       doc.setFontSize(8.5); ctx.color("ink3");
-      for (const line of doc.splitTextToSize(`Nachträglich bearbeitet am ${deDate(isoDate(new Date(e.bearbeitet)))} um ${hhmm(e.bearbeitet)} Uhr. Vorheriger Text: ${e.textOriginal || ""}`, CW)) { ctx.ensure(4.5); doc.text(line, M, ctx.y); ctx.y += 4; }
+      for (const line of doc.splitTextToSize(`Nachträglich bearbeitet am ${deDate(isoDate(new Date(e.bearbeitet)))} um ${hhmm(e.bearbeitet)} Uhr${(e.aenderungen || []).length ? " (" + [...new Set(e.aenderungen.flatMap((a) => a.felder))].join(", ") + ")" : ""}.${e.textOriginal ? " Vorheriger Text: " + e.textOriginal : ""}`, CW)) { ctx.ensure(4.5); doc.text(line, M, ctx.y); ctx.y += 4; }
     }
     ctx.y += 2;
     const imgs = [];
@@ -1395,7 +1489,7 @@ function renderErfassen() {
   renderPin();
 }
 function entryCard(e) {
-  const editing = S.editId === e.id, confirming = S.confirmId === e.id;
+  const editing = false, confirming = S.confirmId === e.id;
   const kat = `<span class="tag ${e.kategorie}">${esc(KAT_LABEL[e.kategorie] || e.kategorie)}</span>`;
   const sync = e.beispiel ? `<span class="tag beispiel sync">Beispiel</span>` : e.synced ? `<span class="sync" style="color:var(--ok)">● Dropbox</span>` : `<span class="sync" style="color:var(--warn)">● wartet</span>`;
   const plan = e.pin && getPlan(e.baustelle, e.pin.planKey);

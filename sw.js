@@ -1,5 +1,5 @@
 // Hält die App offline verfügbar. Dropbox- und Wetter-Anfragen gehen immer ins Netz.
-const CACHE = "bautagebuch-v4";
+const CACHE = "bautagebuch-v5";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-180.png",
   "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"];
 self.addEventListener("install", (e) => {

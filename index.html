@@ -575,6 +575,10 @@ function meta(b) { if (!S.meta[b]) S.meta[b] = { kontakte: [], plaene: [], geaen
 async function saveMeta(b) { const m = meta(b); m.geaendert = new Date().toISOString(); await kvSet("meta:" + b, m); if (b !== DEMO) { await kvSet("dirty:" + b, true); sync(false); } }
 const plansOf = (b) => [...meta(b).plaene].sort((x, y) => floorRank(x.name) - floorRank(y.name) || x.name.localeCompare(y.name));
 const getPlan = (b, key) => meta(b).plaene.find((p) => p.key === key);
+const isArch = (b) => !!(S.meta[b] && S.meta[b].archiviert);
+const activeB = () => S.baustellen.filter((b) => !isArch(b));
+const archB = () => S.baustellen.filter((b) => isArch(b));
+const basePath = (b) => (isArch(b) ? "/Archiv/" : "/") + safeName(b);
 
 /* ---------- Fotos ---------- */
 async function compress(src, max = 1600, q = 0.8) {
@@ -700,7 +704,7 @@ const DBX = {
 };
 function photoPath(e, i) {
   const t = new Date(e.ts);
-  return `/${safeName(e.baustelle)}/${weekKey(e.datum)}/${nrText(e.nr)}_${e.datum}_${pad(t.getHours())}${pad(t.getMinutes())}_${i + 1}_${e.fotos[i].id.slice(-5)}.jpg`;
+  return `${basePath(e.baustelle)}/${weekKey(e.datum)}/${nrText(e.nr)}_${e.datum}_${pad(t.getHours())}${pad(t.getMinutes())}_${i + 1}_${e.fotos[i].id.slice(-5)}.jpg`;
 }
 function serialize(e) {
   return { id: e.id, nr: e.nr, nummer: nrText(e.nr), baustelle: e.baustelle, zeitpunkt: e.ts, datum: e.datum, kategorie: e.kategorie,
@@ -713,13 +717,13 @@ function deserialize(x, b) {
     textOriginal: x.textOriginal, bearbeitet: x.bearbeitet, aenderungen: x.aenderungen || [], gewerk: x.gewerk, ortImBau: x.ortImBau, personal: x.personal || [], pin: x.pin,
     wetter: x.wetter, ort: x.ort, synced: true, remote: true, fotos: (x.fotos || []).map((f) => ({ id: f.id || uid(), path: f.path, w: f.w, h: f.h })) };
 }
-async function loadRemote(b) { const blob = await DBX.download(`/${safeName(b)}/eintraege.json`); if (!blob) return null; try { return JSON.parse(await blob.text()); } catch (e) { return null; } }
+async function loadRemote(b) { const blob = await DBX.download(`${basePath(b)}/eintraege.json`); if (!blob) return null; try { return JSON.parse(await blob.text()); } catch (e) { return null; } }
 async function adoptRemoteMeta(b, remote) {
   if (!remote || !remote.meta) return false;
   const local = meta(b);
   if (local.geaendert && remote.meta.geaendert && local.geaendert >= remote.meta.geaendert) return false;
   for (const p of local.plaene) { const rp = (remote.meta.plaene || []).find((x) => x.key === p.key); if (!rp || rp.id !== p.id) { await DB.del("photos", p.id); urlCache.delete(p.id); } }
-  S.meta[b] = { kontakte: remote.meta.kontakte || [], plaene: remote.meta.plaene || [], geaendert: remote.meta.geaendert };
+  S.meta[b] = { kontakte: remote.meta.kontakte || [], plaene: remote.meta.plaene || [], geaendert: remote.meta.geaendert, archiviert: remote.meta.archiviert || null };
   await kvSet("meta:" + b, S.meta[b]); return true;
 }
 async function sync(manual) {
@@ -728,6 +732,7 @@ async function sync(manual) {
   if (!navigator.onLine) { if (manual) toast("Kein Netz. Upload folgt automatisch."); return; }
   setSync("running");
   try {
+    await processPendingOps();
     const pending = S.entries.filter((e) => !e.synced && !e.beispiel);
     const groups = new Set(pending.map((e) => e.baustelle));
     for (const b of S.baustellen) if (b !== DEMO && await kvGet("dirty:" + b, false)) groups.add(b);
@@ -747,10 +752,10 @@ async function sync(manual) {
         for (const p of m.plaene) {
           if (p.path) continue;
           const rec = await DB.get("photos", p.id); if (!rec) continue;
-          p.path = `/${safeName(b)}/Plaene/${safeName(p.name)}_v${p.version}.jpg`; await DBX.upload(p.path, rec.blob);
+          p.path = `${basePath(b)}/Plaene/${safeName(p.name)}_v${p.version}.jpg`; await DBX.upload(p.path, rec.blob);
         }
         await kvSet("meta:" + b, m);
-        remote.meta = { kontakte: m.kontakte, plaene: m.plaene, geaendert: m.geaendert };
+        remote.meta = { kontakte: m.kontakte, plaene: m.plaene, geaendert: m.geaendert, archiviert: m.archiviert || null };
       }
       const map = new Map((remote.eintraege || []).map((x) => [x.id, x]));
       S.entries.filter((e) => e.baustelle === b && !e.beispiel).forEach((e) => map.set(e.id, serialize(e)));
@@ -760,7 +765,7 @@ async function sync(manual) {
       remote.wetter = remote.wetter || {};
       for (const d of new Set(S.entries.filter((e) => e.baustelle === b).map((e) => e.datum))) { const w = await kvGet(`wetter:${b}|${d}`, null); if (w) remote.wetter[d] = w; }
       remote.aktualisiert = new Date().toISOString();
-      await DBX.upload(`/${safeName(b)}/eintraege.json`, new Blob([JSON.stringify(remote, null, 2)], { type: "application/json" }));
+      await DBX.upload(`${basePath(b)}/eintraege.json`, new Blob([JSON.stringify(remote, null, 2)], { type: "application/json" }));
       for (const e of pending.filter((x) => x.baustelle === b)) { e.synced = true; await DB.put("entries", e); }
       await kvSet("dirty:" + b, false);
     }
@@ -769,27 +774,106 @@ async function sync(manual) {
   } catch (e) { setSync("error", e.message); if (manual) toast(e.message); }
   render();
 }
+async function processPendingOps() {
+  const moves = await kvGet("ops:moves", []), rest = [];
+  let moveErr = null;
+  for (const mv of moves) {
+    try { await DBX.rpc("files/move_v2", { from_path: mv.from, to_path: mv.to, autorename: false }); }
+    catch (e) { if (e.status === 409 && /not_found/.test(e.message)) continue; rest.push(mv); moveErr = e; }
+  }
+  await kvSet("ops:moves", rest);
+  if (moveErr) throw new Error("Ordner konnte nicht ins Archiv verschoben werden. Liegt dort schon ein Ordner mit gleichem Namen?");
+  const dels = await kvGet("ops:dels", []), untomb = await kvGet("ops:untomb", []);
+  if (!dels.length && !untomb.length) return;
+  let tomb = []; try { const bl = await DBX.download("/_geloescht.json"); if (bl) tomb = JSON.parse(await bl.text()); } catch (e) { tomb = []; }
+  for (const d of dels) {
+    for (const p of d.paths) { try { await DBX.rpc("files/delete_v2", { path: p }); } catch (e) { if (e.status !== 409) throw e; } }
+    tomb = tomb.filter((t) => t.name !== d.b); tomb.push({ name: d.b, zeit: d.zeit });
+  }
+  tomb = tomb.filter((t) => !untomb.includes(t.name) || dels.some((d) => d.b === t.name));
+  await DBX.upload("/_geloescht.json", new Blob([JSON.stringify(tomb, null, 2)], { type: "application/json" }));
+  await kvSet("ops:dels", []); await kvSet("ops:untomb", []);
+}
+async function deleteBaustelleLocal(b) {
+  for (const e of S.entries.filter((x) => x.baustelle === b)) { for (const f of e.fotos) { await DB.del("photos", f.id); urlCache.delete(f.id); } await DB.del("entries", e.id); }
+  S.entries = S.entries.filter((x) => x.baustelle !== b);
+  for (const p of ((S.meta[b] || {}).plaene || [])) await DB.del("photos", p.id);
+  delete S.meta[b]; await kvSet("meta:" + b, null); await kvSet("dirty:" + b, false); await kvSet("zaehler:" + b, 0);
+  S.baustellen = S.baustellen.filter((x) => x !== b); await kvSet("baustellen", S.baustellen);
+  if (S.aktuell === b) { S.aktuell = activeB()[0] || ""; await kvSet("aktuell", S.aktuell); }
+  if (S.calBaustelle === b) S.calBaustelle = S.aktuell;
+  if (S.bDetail === b) S.bDetail = null;
+}
+async function deleteBaustelle(b) {
+  const name = safeName(b);
+  await deleteBaustelleLocal(b);
+  await kvSet("ops:moves", (await kvGet("ops:moves", [])).filter((m) => m.b !== b));
+  await kvSet("ops:untomb", (await kvGet("ops:untomb", [])).filter((n) => n !== b));
+  const dels = (await kvGet("ops:dels", [])).filter((d) => d.b !== b);
+  dels.push({ b, paths: ["/" + name, "/Archiv/" + name], zeit: new Date().toISOString() });
+  await kvSet("ops:dels", dels);
+  sync(false);
+}
+async function setArchived(b, on) {
+  const m = meta(b), from = basePath(b);
+  m.archiviert = on ? new Date().toISOString() : null;
+  const to = basePath(b), fix = (p) => (p && p.startsWith(from + "/") ? to + p.slice(from.length) : p);
+  for (const e of S.entries.filter((x) => x.baustelle === b)) {
+    e.fotos.forEach((f) => { f.path = fix(f.path); });
+    if (!e.beispiel) e.synced = false;
+    await DB.put("entries", e);
+  }
+  m.plaene.forEach((p) => { p.path = fix(p.path); });
+  if (b !== DEMO) {
+    const mv = (await kvGet("ops:moves", [])).filter((x) => x.b !== b);
+    mv.push({ b, from, to }); await kvSet("ops:moves", mv);
+  }
+  if (on && S.aktuell === b) { S.aktuell = activeB()[0] || ""; await kvSet("aktuell", S.aktuell); }
+  if (!on && !S.aktuell) { S.aktuell = b; await kvSet("aktuell", b); }
+  await saveMeta(b);
+}
 async function importRemote(manual) {
   if (!DBX.connected || !navigator.onLine) return;
   try {
-    const res = await DBX.rpc("files/list_folder", { path: "" }); let neu = 0;
-    for (const it of res.entries.filter((x) => x[".tag"] === "folder")) {
-      const blob = await DBX.download(`/${it.name}/eintraege.json`); if (!blob) continue;
+    const res = await DBX.rpc("files/list_folder", { path: "" }); let neu = 0, weg = 0;
+    let tomb = []; try { const bl = await DBX.download("/_geloescht.json"); if (bl) tomb = JSON.parse(await bl.text()); } catch (e) { tomb = []; }
+    const untomb = await kvGet("ops:untomb", []), dead = new Set();
+    for (const t of tomb) {
+      if (untomb.includes(t.name)) continue; dead.add(t.name);
+      if (!S.baustellen.includes(t.name)) continue;
+      if (S.entries.some((e) => e.baustelle === t.name && !e.synced && !e.beispiel)) { untomb.push(t.name); dead.delete(t.name); await kvSet("ops:untomb", untomb); continue; }
+      await deleteBaustelleLocal(t.name); weg++;
+    }
+    const folders = res.entries.filter((x) => x[".tag"] === "folder").map((x) => x.name);
+    const paths = folders.filter((n) => n !== "Archiv").map((n) => "/" + n);
+    if (folders.includes("Archiv")) { try { const ar = await DBX.rpc("files/list_folder", { path: "/Archiv" }); ar.entries.filter((x) => x[".tag"] === "folder").forEach((x) => paths.push("/Archiv/" + x.name)); } catch (e) {} }
+    for (const fp of paths) {
+      const blob = await DBX.download(`${fp}/eintraege.json`); if (!blob) continue;
       let j; try { j = JSON.parse(await blob.text()); } catch (e) { continue; }
-      const b = j.baustelle || it.name;
+      const b = j.baustelle || fp.split("/").pop();
+      if (dead.has(b)) continue;
       if (!S.baustellen.includes(b)) { S.baustellen.push(b); await kvSet("baustellen", S.baustellen); }
       if ((j.zaehler || 0) > await kvGet("zaehler:" + b, 0)) await kvSet("zaehler:" + b, j.zaehler);
       await adoptRemoteMeta(b, j);
       for (const [d, w] of Object.entries(j.wetter || {})) if (!(await kvGet(`wetter:${b}|${d}`, null))) await kvSet(`wetter:${b}|${d}`, w);
       for (const x of j.eintraege || []) {
         const idx = S.entries.findIndex((e) => e.id === x.id);
-        if (idx >= 0) { const loc = S.entries[idx]; if (!loc.synced || (loc.bearbeitet || "") >= (x.bearbeitet || "")) continue; }
+        if (idx >= 0) {
+          const loc = S.entries[idx];
+          if (!loc.synced || (loc.bearbeitet || "") >= (x.bearbeitet || "")) {
+            let ch = false;
+            if (loc.synced) (x.fotos || []).forEach((rf) => { const lf = loc.fotos.find((f) => f.id === rf.id); if (lf && rf.path && lf.path !== rf.path) { lf.path = rf.path; ch = true; } });
+            if (ch) await DB.put("entries", loc);
+            continue;
+          }
+        }
         const e = deserialize(x, b);
         if (idx >= 0) S.entries[idx] = e; else { S.entries.push(e); neu++; }
         await DB.put("entries", e);
       }
     }
-    if (manual) toast(neu ? `${neu} Einträge aus Dropbox geladen.` : "Keine neuen Einträge in Dropbox.");
+    if (weg) toast(`${weg} Baustelle${weg > 1 ? "n wurden" : " wurde"} auf einem anderen Gerät gelöscht und hier entfernt.`);
+    else if (manual) toast(neu ? `${neu} Einträge aus Dropbox geladen.` : "Keine neuen Einträge in Dropbox.");
     render();
   } catch (e) { if (manual) toast("Laden fehlgeschlagen: " + e.message); }
 }
@@ -1373,11 +1457,11 @@ async function autoWeekReports() {
   if (!DBX.connected || !navigator.onLine || !window.jspdf) return;
   const last = new Date(); last.setDate(last.getDate() - 7); const ld = isoDate(last), key = weekKey(ld), days = weekDays(ld);
   for (const b of S.baustellen) {
-    if (b === DEMO || await kvGet(`wb:${b}|${key}`, false)) continue;
+    if (b === DEMO || isArch(b) || await kvGet(`wb:${b}|${key}`, false)) continue;
     if (!S.entries.some((e) => e.baustelle === b && days.includes(e.datum))) continue;
     try {
       const blob = await weekReport(b, ld, { roh: S.rep.roh, personal: S.opts.personal, sig: false });
-      if (blob) { await DBX.upload(`/${safeName(b)}/Berichte/Wochenbericht_${safeName(b)}_${key}.pdf`, blob); await kvSet(`wb:${b}|${key}`, true); toast(`Wochenbericht ${key.replace("-", " ")} für ${b} in Dropbox abgelegt.`); }
+      if (blob) { await DBX.upload(`${basePath(b)}/Berichte/Wochenbericht_${safeName(b)}_${key}.pdf`, blob); await kvSet(`wb:${b}|${key}`, true); toast(`Wochenbericht ${key.replace("-", " ")} für ${b} in Dropbox abgelegt.`); }
     } catch (e) {}
   }
 }
@@ -1458,7 +1542,10 @@ function renderSyncPill() {
   else if (open) { p.classList.add("wait"); t.textContent = `${open} warten auf Upload`; }
   else { p.classList.add("ok"); t.textContent = "In Dropbox gesichert"; }
 }
-function baustelleOptions(sel, withAll) { return (withAll ? `<option value="">Alle Baustellen</option>` : "") + S.baustellen.map((b) => `<option value="${esc(b)}"${b === sel ? " selected" : ""}>${esc(b)}</option>`).join(""); }
+function baustelleOptions(sel, withAll, withArch) {
+  const o = (b) => `<option value="${esc(b)}"${b === sel ? " selected" : ""}>${esc(b)}</option>`, a = archB();
+  return (withAll ? `<option value="">Alle aktiven Baustellen</option>` : "") + activeB().map(o).join("") + (withArch && a.length ? `<optgroup label="Archiv">${a.map(o).join("")}</optgroup>` : "");
+}
 function renderChips() { $("#katChips").innerHTML = KATS.map(([id, l]) => `<button type="button" class="chip" data-kat="${id}" aria-pressed="${S.draft.kat === id}">${l}</button>`).join(""); }
 function renderDraftThumbs() {
   $("#draftThumbs").innerHTML = S.draft.fotos.map((p, i) => `<div class="thumb"><button type="button" class="open" data-dlb="${i}" aria-label="Foto ${i + 1} groß anzeigen"><img src="${p.url}" alt="Foto ${i + 1}"></button><button type="button" class="x" data-rm="${p.id}" aria-label="Foto ${i + 1} entfernen">×</button></div>`).join("");
@@ -1480,8 +1567,9 @@ function renderPin() {
     : `<button class="btn" type="button" id="pinEdit">Auf Plan markieren</button><span class="hint">${plans.map((x) => esc(x.name)).join(" · ")}</span>`;
 }
 function renderErfassen() {
-  $("#baustelleSel").innerHTML = S.baustellen.length ? baustelleOptions(S.aktuell) : `<option value="">Noch keine Baustelle</option>`;
-  if (!S.baustellen.length) $("#neueBaustelleRow").hidden = false;
+  if (S.aktuell && isArch(S.aktuell)) { S.aktuell = activeB()[0] || ""; kvSet("aktuell", S.aktuell); }
+  $("#baustelleSel").innerHTML = activeB().length ? baustelleOptions(S.aktuell) : `<option value="">Keine aktive Baustelle</option>`;
+  if (!activeB().length) $("#neueBaustelleRow").hidden = false;
   renderChips(); renderDraftThumbs();
   $("#kiBtn").hidden = !S.ki.key;
   $("#rawBox").hidden = !S.draft.textRoh; $("#rawText").textContent = S.draft.textRoh || "";
@@ -1508,13 +1596,13 @@ function entryCard(e) {
 }
 function filteredEntries() {
   const fb = $("#fBaustelle").value, fk = $("#fKat").value, q = $("#fText").value.trim().toLowerCase();
-  return S.entries.filter((e) => (!fb || e.baustelle === fb) && (!fk || e.kategorie === fk) &&
+  return S.entries.filter((e) => (fb ? e.baustelle === fb : !isArch(e.baustelle)) && (!fk || e.kategorie === fk) &&
     (!q || e.text.toLowerCase().includes(q) || nrText(e.nr).toLowerCase().includes(q) || personalText(e.personal).toLowerCase().includes(q) || (e.gewerk || "").toLowerCase().includes(q) || (e.ortImBau || "").toLowerCase().includes(q)))
     .sort((a, b) => b.ts.localeCompare(a.ts));
 }
 function renderEintraege() {
   const fb = $("#fBaustelle"), fk = $("#fKat"); const vb = fb.value, vk = fk.value;
-  fb.innerHTML = baustelleOptions(vb, true);
+  fb.innerHTML = baustelleOptions(vb, true, true);
   fk.innerHTML = `<option value="">Alle Kategorien</option>` + KATS.map(([id, l]) => `<option value="${id}"${id === vk ? " selected" : ""}>${l}</option>`).join("");
   const pb = fb.value || S.aktuell;
   $("#planViewBtn").hidden = !(S.opts.plaene && pb && plansOf(pb).length);
@@ -1531,7 +1619,7 @@ function renderEintraege() {
 }
 function renderKalender() {
   if (!S.calBaustelle || !S.baustellen.includes(S.calBaustelle)) S.calBaustelle = S.aktuell || S.baustellen[0] || "";
-  $("#calBaustelle").innerHTML = S.baustellen.length ? baustelleOptions(S.calBaustelle) : `<option value="">Noch keine Baustelle</option>`;
+  $("#calBaustelle").innerHTML = S.baustellen.length ? baustelleOptions(S.calBaustelle, false, true) : `<option value="">Noch keine Baustelle</option>`;
   const m = S.calMonth, y = m.getFullYear(), mo = m.getMonth(); $("#calTitle").textContent = `${MONATE[mo]} ${y}`;
   const counts = {}; S.entries.filter((e) => e.baustelle === S.calBaustelle).forEach((e) => { counts[e.datum] = (counts[e.datum] || 0) + 1; });
   const firstEntry = Object.keys(counts).sort()[0], today = isoDate(new Date());
@@ -1582,7 +1670,7 @@ async function renderDayPanel() {
       const name = isWeek ? `Wochenbericht_${safeName(b)}_${wk}.pdf` : `Tagesbericht_${safeName(b)}_${day}.pdf`;
       let up = "";
       if (DBX.connected && b !== DEMO) {
-        try { await DBX.upload(`/${safeName(b)}/Berichte/${name}`, blob); if (isWeek) await kvSet(`wb:${b}|${wk}`, true); up = `<p class="hint" style="color:var(--ok)">In Dropbox gespeichert unter /${esc(safeName(b))}/Berichte/</p>`; }
+        try { await DBX.upload(`${basePath(b)}/Berichte/${name}`, blob); if (isWeek) await kvSet(`wb:${b}|${wk}`, true); up = `<p class="hint" style="color:var(--ok)">In Dropbox gespeichert unter ${esc(basePath(b))}/Berichte/</p>`; }
         catch (e) { up = `<p class="err-text">Upload in Dropbox fehlgeschlagen. Das PDF ist trotzdem erstellt.</p>`; }
       }
       const url = URL.createObjectURL(blob);
@@ -1598,8 +1686,11 @@ function renderBaustellen() {
     S.bDetail = null;
     v.innerHTML = `<div class="banner" data-demo-banner ${S.entries.some((e) => e.beispiel) ? "" : "hidden"}><span>Die Baustelle „Beispiel“ enthält Beispieldaten zum Ausprobieren.</span><button class="btn small" type="button" data-remove-demo>Beispieldaten entfernen</button></div>
       <h2 style="font-size:26px">Baustellen</h2>
-      ${S.baustellen.length ? `<div class="blist">${S.baustellen.map((b) => `<button type="button" class="bitem" data-bopen="${esc(b)}"><span class="nm">${esc(b)}</span><span class="mono">${bauStats(b).replace(/ · /g, "<br>")}</span></button>`).join("")}</div>` : `<div class="empty"><strong>Noch keine Baustelle</strong>Lege unten deine erste Baustelle an.</div>`}
-      <div class="card"><label class="label" for="bNew">Neue Baustelle</label><div class="row"><input type="text" id="bNew" class="grow" placeholder="Wohnanlage Müllerstraße 12" autocomplete="off"><button class="btn small" type="button" id="bNewOk">Anlegen</button></div><p class="err-text" id="bNewErr" hidden></p></div>`;
+      ${activeB().length ? `<div class="blist">${activeB().map((b) => `<button type="button" class="bitem" data-bopen="${esc(b)}"><span class="nm">${esc(b)}</span><span class="mono">${bauStats(b).replace(/ · /g, "<br>")}</span></button>`).join("")}</div>` : `<div class="empty"><strong>Keine aktive Baustelle</strong>Lege unten eine neue Baustelle an${archB().length ? " oder hole eine aus dem Archiv zurück" : ""}.</div>`}
+      <div class="card"><label class="label" for="bNew">Neue Baustelle</label><div class="row"><input type="text" id="bNew" class="grow" placeholder="Wohnanlage Müllerstraße 12" autocomplete="off"><button class="btn small" type="button" id="bNewOk">Anlegen</button></div><p class="err-text" id="bNewErr" hidden></p></div>
+      ${archB().length ? `<div class="card archive"><div class="row"><h2 class="grow">Archiv</h2><span class="mono" style="font-size:13px;color:var(--ink-2)">${archB().length}</span></div>
+        <p class="hint">Archivierte Baustellen erscheinen nicht mehr beim Erfassen. Einträge, Fotos, Pläne und Berichte bleiben vollständig erhalten. In Dropbox liegen sie im Ordner „Archiv“.</p>
+        <div class="blist">${archB().map((b) => `<button type="button" class="bitem" data-bopen="${esc(b)}"><span class="nm">${esc(b)}</span><span class="mono">archiviert ${deDate(isoDate(new Date(meta(b).archiviert)))}<br>${S.entries.filter((e) => e.baustelle === b).length} Einträge</span></button>`).join("")}</div></div>` : ""}`;
     return;
   }
   const b = S.bDetail, m = meta(b), plans = plansOf(b), ed = S.bEdit, cf = S.bConfirm;
@@ -1611,8 +1702,9 @@ function renderBaustellen() {
       <input type="text" id="cNotiz" value="${esc(k && k.notiz)}" placeholder="Notiz, z. B. Polier ab 7:00 vor Ort" aria-label="Notiz">
       <p class="err-text" id="cErr" hidden></p><div class="row"><button class="btn small" type="button" id="cSave">${k ? "Änderung speichern" : "Kontakt speichern"}</button><button class="btn quiet small" type="button" data-bcancel>Abbrechen</button></div></div>`;
   v.innerHTML = `<div class="row"><button class="btn quiet small" type="button" id="bBack">‹ Alle Baustellen</button></div>
-    <div class="row"><h2 class="grow" style="font-size:26px">${esc(b)}</h2>${b === DEMO ? '<span class="tag beispiel">Beispiel</span>' : ""}</div>
+    <div class="row"><h2 class="grow" style="font-size:26px">${esc(b)}</h2>${b === DEMO ? '<span class="tag beispiel">Beispiel</span>' : ""}${isArch(b) ? '<span class="tag">Archiv</span>' : ""}</div>
     <p class="hint">${bauStats(b)}</p>
+    ${isArch(b) ? `<p class="note">Archiviert am ${deDate(isoDate(new Date(m.archiviert)))}. Neue Einträge sind nicht möglich. Bestehende Einträge kannst du weiter ansehen und bearbeiten, Berichte im Kalender erstellen.${b !== DEMO ? " In Dropbox: Ordner Archiv." : ""}</p>` : ""}
     <div class="card"><div class="row"><h2 class="grow">Pläne</h2>${ed && ed.type === "plan" && !ed.key ? "" : `<button class="btn small" type="button" id="pAdd">Plan hinzufügen</button>`}</div>
       ${S.opts.plaene ? "" : `<p class="note">Pläne und Pins sind unter Optionen ausgeschaltet.</p>`}
       ${planForm}
@@ -1631,7 +1723,19 @@ function renderBaustellen() {
           ${cf === k.id ? `<div class="confirm">Kontakt löschen? <button class="btn small danger" type="button" data-cdelyes="${k.id}">Löschen</button><button class="btn quiet small" type="button" data-bcancel>Behalten</button></div>` : ""}</div>
           ${cf === k.id ? "" : `<div class="row"><button class="btn quiet small" type="button" data-cedit="${k.id}">Bearbeiten</button><button class="btn quiet small danger" type="button" data-cdel="${k.id}">Löschen</button></div>`}</div>`).join("")}</div>`
         : (ed && ed.type === "contact" ? "" : `<p class="hint">Hinterlege hier alle Firmen und Personen der Baustelle. Sie stehen dann beim Erfassen von Personal zur Auswahl und die KI erkennt ihre Namen.</p>`)}
-      ${HOSTED ? "" : `<p class="hint">Telefon- und Mail-Links funktionieren in der installierten App, in dieser Vorschau nicht immer.</p>`}</div>`;
+      ${HOSTED ? "" : `<p class="hint">Telefon- und Mail-Links funktionieren in der installierten App, in dieser Vorschau nicht immer.</p>`}</div>
+    <div class="card"><h2>Verwaltung</h2>
+      ${isArch(b) ? `<p class="hint">Holt die Baustelle zurück in die aktive Liste${b !== DEMO ? " und verschiebt den Dropbox-Ordner aus dem Archiv zurück" : ""}.</p><div class="row"><button class="btn" type="button" id="bArch">Aus dem Archiv holen</button></div>`
+        : `<p class="hint">Archivieren blendet die Baustelle beim Erfassen aus${b !== DEMO ? " und verschiebt den Dropbox-Ordner nach „Archiv“" : ""}. Alle Daten bleiben erhalten und du kannst sie jederzeit zurückholen.</p><div class="row"><button class="btn" type="button" id="bArch">Baustelle archivieren</button></div>`}
+      <div style="border-top:1px solid var(--line);padding-top:12px" class="stack">
+      ${cf === "DEL" ? `<div class="form" style="border-color:var(--danger)"><strong style="color:var(--danger)">Baustelle endgültig löschen</strong>
+          <p class="hint">Gelöscht werden ${S.entries.filter((e) => e.baustelle === b).length} Einträge mit allen Fotos, ${m.plaene.length} Pläne und ${m.kontakte.length} Kontakte${b !== DEMO ? ", auf allen Geräten und in Dropbox inklusive aller Berichte" : ""}. Das lässt sich nicht rückgängig machen.</p>
+          <label class="label" for="bDelInput">Zum Bestätigen LÖSCHEN eintippen</label>
+          <input type="text" id="bDelInput" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="LÖSCHEN">
+          <p class="err-text" id="bDelErr" hidden></p>
+          <div class="row"><button class="btn danger" type="button" id="bDelGo">Endgültig löschen</button><button class="btn quiet" type="button" data-bcancel>Abbrechen</button></div></div>`
+        : `<div class="row"><button class="btn quiet danger" type="button" id="bDelStart">Baustelle endgültig löschen …</button></div>`}
+      </div></div>`;
   fillThumbs(v);
 }
 function renderOptionen() {
@@ -1661,7 +1765,8 @@ function render() {
 async function addBaustelle(name, errEl) {
   const v = name.trim(); errEl.hidden = true;
   if (!v) { errEl.textContent = "Gib einen Namen für die Baustelle ein."; errEl.hidden = false; return false; }
-  if (S.baustellen.includes(v)) { errEl.textContent = "Diese Baustelle gibt es schon."; errEl.hidden = false; return false; }
+  if (S.baustellen.includes(v)) { errEl.textContent = isArch(v) ? "Diese Baustelle liegt im Archiv. Hole sie unter Baustellen zurück." : "Diese Baustelle gibt es schon."; errEl.hidden = false; return false; }
+  const ut = await kvGet("ops:untomb", []); if (!ut.includes(v)) { ut.push(v); await kvSet("ops:untomb", ut); }
   S.baustellen.push(v); S.aktuell = v; await kvSet("baustellen", S.baustellen); await kvSet("aktuell", v); toast(`Baustelle „${v}“ angelegt.`); return true;
 }
 let planFileTarget = null;
@@ -1729,6 +1834,15 @@ function bind() {
     if (t.dataset.bopen) { S.bDetail = t.dataset.bopen; S.bEdit = null; S.bConfirm = null; renderBaustellen(); window.scrollTo(0, 0); return; }
     if (t.id === "bNewOk") { if (await addBaustelle($("#bNew").value, $("#bNewErr"))) { S.bDetail = S.aktuell; renderBaustellen(); } return; }
     if (t.id === "bBack") { S.bDetail = null; S.bEdit = null; S.bConfirm = null; renderBaustellen(); return; }
+    if (t.id === "bArch") { const on = !isArch(b); await setArchived(b, on); S.bConfirm = null; toast(on ? `„${b}“ archiviert.` : `„${b}“ ist wieder aktiv.`); renderBaustellen(); return; }
+    if (t.id === "bDelStart") { S.bConfirm = "DEL"; S.bEdit = null; renderBaustellen(); $("#bDelInput").focus(); return; }
+    if (t.id === "bDelGo") {
+      const er = $("#bDelErr"), val = $("#bDelInput").value.trim();
+      if (val !== "LÖSCHEN") { er.textContent = "Tippe LÖSCHEN in Großbuchstaben ein, um das endgültige Löschen zu bestätigen."; er.hidden = false; $("#bDelInput").focus(); return; }
+      S.bConfirm = null;
+      if (b === DEMO) { await removeDemo(); S.bDetail = null; renderBaustellen(); return; }
+      await deleteBaustelle(b); S.bDetail = null; toast(`„${b}“ wurde endgültig gelöscht.`); render(); return;
+    }
     if (t.hasAttribute("data-bcancel")) { S.bEdit = null; S.bConfirm = null; renderBaustellen(); return; }
     if (t.id === "pAdd") { S.bEdit = { type: "plan" }; S.bConfirm = null; renderBaustellen(); $("#pName").focus(); return; }
     if (t.id === "pPick") {
@@ -1754,6 +1868,8 @@ function bind() {
       await saveMeta(b); S.bEdit = null; toast(`${firma} gespeichert.`); renderBaustellen();
     }
   });
+  $("#bView").addEventListener("input", (e) => { if (e.target.id === "bDelInput") $("#bDelErr").hidden = true; });
+  $("#bView").addEventListener("keydown", (e) => { if (e.target.id === "bDelInput" && e.key === "Enter") $("#bDelGo").click(); });
   $("#planFile").addEventListener("change", async (e) => {
     const f = e.target.files[0]; e.target.value = ""; if (!f || !planFileTarget) return;
     const tgt = planFileTarget; planFileTarget = null; toast("Plan wird eingelesen …");
